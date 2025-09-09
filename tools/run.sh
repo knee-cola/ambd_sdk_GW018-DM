@@ -99,11 +99,11 @@ build_run_args() {
         "--tty"                            # Allocate pseudo-TTY
         "--name" "$CONTAINER_NAME"         # Container name
         # Mount `tools` directory for scripts and tools
-        "--volume" "$(pwd)../tools:/workspace/tools"
+        "--volume" "../tools:/workspace/tools"
         # Mount current directory for storing build artifacts
-        "--volume" "$(pwd)../build:/workspace/build"
+        "--volume" "../build:/workspace/build"
         # Mount the example project which will be used for building
-        "--volume" "$(pwd)../project:/workspace/project"
+        "--volume" "../project:/workspace/project"
     )
     
     # Detect and add serial devices
@@ -142,6 +142,8 @@ run_container() {
     echo ""
     
     # Run the container
+    echo docker run "${run_args[@]}" "${IMAGE_NAME}:${IMAGE_TAG}"
+
     docker run "${run_args[@]}" "${IMAGE_NAME}:${IMAGE_TAG}"
 }
 
