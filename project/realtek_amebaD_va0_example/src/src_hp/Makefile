@@ -10,11 +10,19 @@ DIR = $(SRCDIR)
 
 MODULE_IFLAGS = -I$(DIR)./
 
-vpath %.c $(DIR)
+vpath %.c $(DIR) $(DIR)/provisioning
 #*****************************************************************************#
 #                               Source FILE LIST                              #
 #*****************************************************************************#
 CSRC = $(DIR)/main.c
+
+# Captive portal provisioning modules (always include when files exist)
+ifneq ($(wildcard $(DIR)/provisioning/provisioning_task.c),)
+CSRC += $(DIR)/provisioning/provisioning_task.c
+CSRC += $(DIR)/provisioning/dns_captive.c
+CSRC += $(DIR)/provisioning/http_portal.c
+CSRC += $(DIR)/provisioning/wifi_store.c
+endif
 
 #*****************************************************************************#
 #                               Object FILE LIST                              #
