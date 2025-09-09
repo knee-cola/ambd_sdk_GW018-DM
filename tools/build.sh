@@ -5,6 +5,31 @@
 
 echo "Building firmware..."
 
+# Helper function to validate build success
+validate_build() {
+    local project_name="$1"
+    local build_output_file="$2"
+    local expected_binaries=("${@:3}")
+    
+    # Check if build output contains success message
+    if ! grep -q "========== Image manipulating end ==========" "$build_output_file"; then
+        echo "ERROR: $project_name build failed - missing success message"
+        echo "Build output saved to: $build_output_file"
+        return 1
+    fi
+    
+    # Check if all expected binary files exist
+    for binary in "${expected_binaries[@]}"; do
+        if [[ ! -f "$binary" ]]; then
+            echo "ERROR: $project_name build failed - missing binary file: $binary"
+            return 1
+        fi
+    done
+    
+    echo "$project_name build completed successfully!"
+    return 0
+}
+
 echo "Please enter the MAC address of the device (format: AA:BB:CC:DD:EE:FF):"
 read -r device_mac
 
@@ -22,7 +47,20 @@ chmod -R 777 /workspace/ambd_sdk_GW018-DM/project/realtek_amebaD_va0_example/GCC
 echo "Building LP (Low Power) project..."
 cd /workspace/ambd_sdk_GW018-DM/project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp
 make clean
-DEVICE_MAC="$device_mac" make all
+
+# Capture build output and check for success
+echo "Starting LP build with MAC: $device_mac"
+build_output_lp=$(mktemp)
+if ! DEVICE_MAC="$device_mac" make all 2>&1 | tee "$build_output_lp"; then
+    echo "ERROR: LP build failed with non-zero exit code"
+    echo "Build output saved to: $build_output_lp"
+    exit 1
+fi
+
+# Validate LP build success
+if ! validate_build "LP" "$build_output_lp" "asdk/image/km0_boot_all.bin" "asdk/image/km0_km4_image2.bin"; then
+    exit 1
+fi
 
 echo "Copying LP (Low Power) binaries to flash directory..."
 cp asdk/image/km0_boot_all.bin /workspace/flash/
@@ -32,12 +70,29 @@ echo "Building HP (High Performance) project..."
 cd /workspace/ambd_sdk_GW018-DM/project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/
 
 make clean
-DEVICE_MAC="$device_mac" make all
+
+# Capture build output and check for success
+echo "Starting HP build with MAC: $device_mac"
+build_output_hp=$(mktemp)
+if ! DEVICE_MAC="$device_mac" make all 2>&1 | tee "$build_output_hp"; then
+    echo "ERROR: HP build failed with non-zero exit code"
+    echo "Build output saved to: $build_output_hp"
+    exit 1
+fi
+
+# Validate HP build success
+if ! validate_build "HP" "$build_output_hp" "asdk/image/km4_boot_all.bin"; then
+    exit 1
+fi
 
 echo "Copying HP (High Performance) binaries to flash directory..."
 cp asdk/image/km4_boot_all.bin /workspace/flash/
 
-echo "Build process completed."
+echo "Build process completed successfully!"
+echo "All firmware binaries have been generated and validated."
+
+# Clean up temporary build output files
+rm -f "$build_output_lp" "$build_output_hp" 2>/dev/null || true
 
 echo "Removing build artifacts..."
 cd /workspace/ambd_sdk_GW018-DM/project/
