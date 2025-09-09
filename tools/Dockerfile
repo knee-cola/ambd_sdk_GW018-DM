@@ -29,9 +29,6 @@ RUN dnf update -y && \
 # Create working directory
 WORKDIR /workspace
 
-# Set correct permissions for the SDK
-RUN chmod -R 777 ambd_sdk_GW018-DM/
-
 # Download the official flashing tool for GW018-DM
 RUN wget -O upload_image_tool_linux https://github.com/ambiot/ambd_arduino/raw/dev/Arduino_package/ameba_d_tools_linux/upload_image_tool_linux && \
     wget -O imgtool_flashloader_amebad.bin https://github.com/Ameba-AIoT/ameba-arduino-d/raw/refs/heads/dev/Arduino_package/ameba_d_tools_linux/tools/linux/image_tool/imgtool_flashloader_amebad.bin && \
