@@ -103,7 +103,7 @@ build_run_args() {
         # Mount current directory for storing build artifacts
         "--volume" "$(pwd)/build:/workspace/build"
         # Mount the example project which will be used for building
-        "--volume" "$(pwd)../project/realtek_amebaD_va0_example:/workspace/realtek_amebaD_va0_example"
+        "--volume" "$(pwd)../project:/workspace/project"
     )
     
     # Detect and add serial devices
