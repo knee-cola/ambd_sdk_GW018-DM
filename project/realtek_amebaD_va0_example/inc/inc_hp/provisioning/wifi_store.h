@@ -64,6 +64,12 @@ int wifi_store_clear(void);
 bool wifi_store_should_provision(void);
 
 /**
+ * Track power cycle events for provisioning trigger
+ * @return 0 on success, negative on error
+ */
+int wifi_store_track_power_cycle(void);
+
+/**
  * Clear provisioning trigger state
  * @return 0 on success, negative on error
  */
