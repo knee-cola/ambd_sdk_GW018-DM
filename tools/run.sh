@@ -104,6 +104,8 @@ build_run_args() {
         "--volume" "../build:/workspace/build"
         # Mount the example project which will be used for building
         "--volume" "../project:/workspace/project"
+        # Mount the component directory for SDK components
+        "--volume" "../component:/workspace/component"
     )
     
     # Detect and add serial devices
