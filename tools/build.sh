@@ -113,6 +113,60 @@ echo -e "${GREEN}${ICON_SUCCESS} All firmware binaries have been generated and v
 # Clean up temporary build output files
 rm -f "$build_output_lp" "$build_output_hp" 2>/dev/null || true
 
+# Detect available serial devices
+echo -e "${CYAN}${ICON_INFO} Detecting serial devices...${NC}"
+SERIAL_DEVICES=()
+DEVICE_COUNT=0
+
+# Check for ttyUSB devices
+for device in /dev/ttyUSB*; do
+    if [ -c "$device" ] 2>/dev/null; then
+        SERIAL_DEVICES+=("$device")
+        echo -e "${GREEN}${ICON_SUCCESS} Found serial device: $device${NC}"
+        ((DEVICE_COUNT++))
+    fi
+done
+
+# Check for ttyACM devices
+for device in /dev/ttyACM*; do
+    if [ -c "$device" ] 2>/dev/null; then
+        SERIAL_DEVICES+=("$device")
+        echo -e "${GREEN}${ICON_SUCCESS} Found serial device: $device${NC}"
+        ((DEVICE_COUNT++))
+    fi
+done
+
+if [ $DEVICE_COUNT -eq 0 ]; then
+    echo -e "${YELLOW}${ICON_WARNING} No serial devices found (/dev/ttyUSB*, /dev/ttyACM*)${NC}"
+    echo -e "${YELLOW}${ICON_INFO} Device may not be connected or accessible${NC}"
+    echo -e "${YELLOW}${ICON_INFO} Skipping firmware flashing.${NC}"
+    exit 0
+fi
+
+# Select serial device to use
+SELECTED_DEVICE=""
+if [ $DEVICE_COUNT -eq 1 ]; then
+    SELECTED_DEVICE="${SERIAL_DEVICES[0]}"
+    echo -e "${GREEN}${ICON_SUCCESS} Using serial device: $SELECTED_DEVICE${NC}"
+else
+    echo -e "${BLUE}${ICON_INFO} Multiple serial devices found. Please select one:${NC}"
+    for i in "${!SERIAL_DEVICES[@]}"; do
+        echo -e "${CYAN}  $((i+1))) ${SERIAL_DEVICES[i]}${NC}"
+    done
+    
+    while true; do
+        echo -e "${BLUE}Enter selection (1-$DEVICE_COUNT): ${NC}"
+        read -r selection
+        if [[ "$selection" =~ ^[0-9]+$ ]] && [ "$selection" -ge 1 ] && [ "$selection" -le $DEVICE_COUNT ]; then
+            SELECTED_DEVICE="${SERIAL_DEVICES[$((selection-1))]}"
+            echo -e "${GREEN}${ICON_SUCCESS} Selected device: $SELECTED_DEVICE${NC}"
+            break
+        else
+            echo -e "${RED}${ICON_ERROR} Invalid selection. Please enter a number between 1 and $DEVICE_COUNT.${NC}"
+        fi
+    done
+fi
+
 echo -e "${BLUE}${ICON_FLASH} Do you want to flash the firmware to GW018-DM now? (y/n)${NC}"
 read -r response
 if [[ "$response" != "y" ]]; then
@@ -120,12 +174,14 @@ if [[ "$response" != "y" ]]; then
     exit 0
 fi
 
-echo -e "${CYAN}${ICON_FLASH} Flashing firmware to GW018-DM...${NC}"
+echo -e "${CYAN}${ICON_FLASH} Flashing firmware to GW018-DM using $SELECTED_DEVICE...${NC}"
 
 cd /workspace/flash
 
 # Erase flash before flashing new firmware (may not be needed)
-./upload_image_tool_linux "$PWD" /dev/ttyUSB0 ameba_rtl8721csm Enable Enable 921600
+echo -e "${YELLOW}${ICON_INFO} Erasing flash...${NC}"
+./upload_image_tool_linux "$PWD" "$SELECTED_DEVICE" ameba_rtl8721csm Enable Enable 921600
 
 # … and let's flash!
-./upload_image_tool_linux "$PWD" /dev/ttyUSB0 ameba_rtl8721csm Enable Disable 921600
+echo -e "${CYAN}${ICON_FLASH} Writing firmware...${NC}"
+./upload_image_tool_linux "$PWD" "$SELECTED_DEVICE" ameba_rtl8721csm Enable Disable 921600
