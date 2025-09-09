@@ -94,11 +94,6 @@ echo "All firmware binaries have been generated and validated."
 # Clean up temporary build output files
 rm -f "$build_output_lp" "$build_output_hp" 2>/dev/null || true
 
-echo "Removing build artifacts..."
-cd /workspace/ambd_sdk_GW018-DM/project/
-git clean -fdxq
-git restore -q * 
-
 echo "Do you want to flash the firmware to GW018-DM now? (y/n)"
 read -r response
 if [[ "$response" != "y" ]]; then
