@@ -102,7 +102,9 @@ fi
 
 echo "Starting container..."
 docker run --rm --name "$CONTAINER_NAME" \
-  --volume "$PWD/../:/workspace/ambd_sdk_GW018-DM" \
+  --volume "$PWD/../project:/workspace/project" \
+  --volume "$PWD/../component:/workspace/component" \
+  --volume "$PWD/../tools/build.sh:/workspace/build.sh" \
   $DEVICE_OPTS \
   -ti --entrypoint /bin/bash \
   "$IMAGE_NAME"
