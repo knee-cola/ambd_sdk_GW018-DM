@@ -26,7 +26,7 @@ echo -e "${CYAN}${ICON_BUILD} Building firmware...${NC}"
 
 # Project paths
 PROJECT_LP_DIR="/workspace/project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp"
-PROJECT_HP_DIR="/workspace/roject/realtek_amebaD_va0_example/GCC-RELEASE/project_hp"
+PROJECT_HP_DIR="/workspace/project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp"
 
 # Permission backup files
 PERMISSIONS_LP_FILE=""
