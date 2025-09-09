@@ -142,7 +142,71 @@ ATWC
 reboot
 ```
 
-## 6) Use your gateway as adapter in Zigbee2MQTT
+## 6) Wi-Fi Provisioning via WPA2 AP Captive Portal
+
+The firmware now includes an optional captive portal for easier Wi-Fi setup without requiring UART access.
+
+### How It Works
+
+When the device has no saved Wi-Fi credentials or provisioning is triggered, it will:
+
+1. **Create a secure Wi-Fi access point**: `GW018-Setup-XXXX` (where XXXX = last 2 bytes of device MAC)
+2. **Use WPA2-PSK security** with a unique random password per device
+3. **Redirect all DNS queries** to the captive portal page
+4. **Provide a web interface** at http://192.168.4.1 for Wi-Fi setup
+
+### Device Setup Process
+
+Each device gets a unique setup label generated during build:
+
+```
+SSID: GW018-Setup-A1B2
+PASSWORD: RandomPass123
+
+1) Connect to the Wi-Fi network above
+2) Setup page opens automatically (or visit http://192.168.4.1/)
+3) Choose your home Wi-Fi and enter its password
+4) Device will reboot and connect to your home network
+```
+
+### Triggering Provisioning Mode
+
+Provisioning mode starts automatically when:
+- No Wi-Fi credentials are saved (fresh device)
+- Device is power-cycled 3 times within 30 seconds (recovery)
+- Long button press >5 seconds (*when GPIO button is configured*)
+
+### Build Process
+
+The build system automatically generates unique credentials:
+
+```bash
+# With device MAC address (recommended):
+DEVICE_MAC=AA:BB:CC:DD:EE:FF make all
+
+# Without MAC (uses default 0000 suffix):
+make all
+
+# Force regenerate secrets:
+FORCE_REGEN=1 make all
+```
+
+Generated files (automatically excluded from git):
+- `ap_secrets.h` - Build-time secrets
+- `label.txt` - Human-readable setup instructions  
+- `provision_log.csv` - Device provisioning history
+- `wifi_qr.txt` - Wi-Fi QR code string
+
+### Fallback to UART
+
+The original UART AT commands still work and take precedence:
+```
+ATW0=MyWifiName
+ATW1=MyWifiPassword  
+ATWC
+```
+
+## 7) Use your gateway as adapter in Zigbee2MQTT
 
 After a reboot, your gateway will automatically connect to your WiFi and prepare everything needed to use it as an adapter in Zigbee2MQTT.
 

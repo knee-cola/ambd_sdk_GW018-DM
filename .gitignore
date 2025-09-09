@@ -1,0 +1,25 @@
+# Generated captive portal secrets and artifacts
+project/realtek_amebaD_va0_example/inc/inc_hp/provisioning/ap_secrets.h
+project/realtek_amebaD_va0_example/label.txt
+project/realtek_amebaD_va0_example/wifi_qr.txt
+provision_log.csv
+
+# Build artifacts
+*.o
+*.a
+*.bin
+*.elf
+*.map
+*.hex
+*.axf
+
+# IDE and editor files
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

@@ -1,5 +1,5 @@
 
-.PHONY: all clean flash debug setup mp
+.PHONY: all clean flash debug setup mp generate_secrets
 
 #*****************************************************************************#
 #                               Object FILE LIST                              #
@@ -10,8 +10,13 @@ OBJS =
 #                        RULES TO GENERATE TARGETS                            #
 #*****************************************************************************#
 
+# Generate AP secrets before building
+generate_secrets:
+	@echo "Generating captive portal secrets..."
+	@python3 ../../../../tools/generate_ap_secrets.py --project-dir ../../
+
 # Define the Rules to build the core targets
-all: CORE_TARGETS
+all: generate_secrets CORE_TARGETS
 	make -C asdk image3_s
 	make -C asdk bootloader
 	make -C asdk image2_ns
@@ -53,6 +58,9 @@ clean: CORE_TARGETS
 clean_all: CORE_TARGETS
 	#make -C asdk clean_rom
 	make -C asdk clean_all
+	@echo "Cleaning generated secrets..."
+	@rm -f ../../inc/inc_hp/provisioning/ap_secrets.h
+	@rm -f ../../label.txt ../../wifi_qr.txt
 
 menuconfig: CORE_TARGETS
 	make -C asdk menuconfig

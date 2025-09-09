@@ -6,6 +6,10 @@
 #include "serial_api.h"
 #include "gpio_api.h"
 
+#if CONFIG_CAPTIVE_PORTAL
+#include "provisioning/provisioning_task.h"
+#endif
+
 #define UART_TX    _PA_18
 #define UART_RX    _PA_19
 #define UART_RTS   _PA_16	// UART0  RTS
@@ -189,6 +193,21 @@ int main(void)
 
 #if defined(CONFIG_WIFI_NORMAL) && defined(CONFIG_NETWORK)
 	rtw_efuse_boot_write();
+
+#if CONFIG_CAPTIVE_PORTAL
+	/* Check if captive portal provisioning is needed */
+	DiagPrintf("Checking if Wi-Fi provisioning is needed...\r\n");
+	int prov_result = provisioning_run_if_needed();
+	if (prov_result > 0) {
+		/* Device will reboot, should not reach here */
+		DiagPrintf("Provisioning completed, rebooting...\r\n");
+		while(1) vTaskDelay(pdMS_TO_TICKS(1000));
+	} else if (prov_result < 0) {
+		DiagPrintf("Provisioning failed, continuing with normal operation\r\n");
+	} else {
+		DiagPrintf("Provisioning not needed or timed out, continuing\r\n");
+	}
+#endif
 
 	/* pre-processor of application example */
 	pre_example_entry();

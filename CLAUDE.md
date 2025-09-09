@@ -95,7 +95,31 @@ Access via holding ESC during power-up with UART connected at 115200 baud.
 - Flash sectors allocated for different purposes (UART settings, AP settings, fast reconnect data)
 - Power management optimized for low-power operation
 
+### Wi-Fi Provisioning Methods
+
+#### 1. UART AT Commands (Legacy)
+- `ATW0=SSID` - Set SSID
+- `ATW1=PASSWORD` - Set password  
+- `ATWC` - Connect to Wi-Fi
+
+#### 2. Captive Portal (New - Implemented)
+When no Wi-Fi credentials exist or provisioning is triggered:
+- Device creates WPA2-PSK protected SoftAP: `GW018-Setup-XXXX`
+- SSID suffix (XXXX) = last 2 bytes of Wi-Fi MAC address
+- Password is randomly generated per device at build time
+- DNS catch-all redirects all queries to captive portal at `192.168.4.1`
+- HTTP server provides Wi-Fi setup interface
+
+**Recovery Methods:**
+- 3× power cycles within 30 seconds triggers provisioning mode
+- Long button press (5+ seconds) - *when GPIO configured*
+
+**Build Integration:**
+- `tools/generate_ap_secrets.py` creates per-device secrets
+- Run with `DEVICE_MAC=AA:BB:CC:DD:EE:FF` environment variable
+- Generates `ap_secrets.h`, `label.txt`, and provision log
+
 ### Current Branch Status
-- Working on: `implementing-captive-portal` branch
+- Working on: `implementing-captive-portal` branch  
 - Main development branch: `dev`
-- Contains documentation for planned captive portal Wi-Fi provisioning feature
+- **Captive portal Wi-Fi provisioning feature is now implemented**

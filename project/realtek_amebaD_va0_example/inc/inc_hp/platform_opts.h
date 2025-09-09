@@ -98,6 +98,9 @@
 #define CONFIG_ENABLE_P2P		0//on/off p2p cmd in log_service or interactive mode
 #if CONFIG_ENABLE_WPS
 #define CONFIG_ENABLE_WPS_DISCOVERY	1
+
+/* Captive Portal Wi-Fi Provisioning */
+#define CONFIG_CAPTIVE_PORTAL		1
 #endif
 #if CONFIG_ENABLE_P2P
 #define CONFIG_ENABLE_WPS_AP		1
