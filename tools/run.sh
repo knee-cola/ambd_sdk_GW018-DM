@@ -9,15 +9,12 @@ cleanup_build_artifacts() {
     echo "Cleaning build artifacts from build-only directories..."
     cd "$PWD/../"
     
-    sudo git clean -fdx project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/asdk/build/
-    sudo git clean -fdx project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/asdk/image/
-    sudo git clean -fdx project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/toolchain/asdk/asdk-6.4.1-linux-newlib-build-2773-i686.tar.bz2
-    sudo git clean -fdx project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/toolchain/linux/
-    sudo git clean -fdx project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp/asdk/build/
-    sudo git clean -fdx project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp/asdk/image/
-    sudo git clean -fdx project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp/toolchain/linux/
+    sudo git clean -fdx project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/
+    sudo git clean -fdx project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp/
     sudo git clean -fdx project/realtek_amebaD_va0_example/inc/inc_hp/build_info.h
     sudo git clean -fdx project/realtek_amebaD_va0_example/inc/inc_lp/build_info.h
+    sudo git restore project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/
+    sudo git restore project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp/
     
     echo "Build artifacts cleaned safely (source code preserved)"
 }
