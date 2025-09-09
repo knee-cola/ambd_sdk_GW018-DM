@@ -34,15 +34,8 @@ RUN wget -O upload_image_tool_linux https://github.com/ambiot/ambd_arduino/raw/d
     wget -O imgtool_flashloader_amebad.bin https://github.com/Ameba-AIoT/ameba-arduino-d/raw/refs/heads/dev/Arduino_package/ameba_d_tools_linux/tools/linux/image_tool/imgtool_flashloader_amebad.bin && \
     chmod +x upload_image_tool_linux
 
-# Copy convenience scripts
-COPY scripts/*.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/*.sh
-
 # Set the working directory to /workspace for mounted volume
 WORKDIR /workspace
-
-# Default command starts interactive guide
-CMD ["entry.sh"]
 
 # Labels for documentation
 LABEL maintainer="Docker image for GW018-DM gateway firmware flashing"
