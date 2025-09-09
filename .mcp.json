@@ -9,7 +9,10 @@
         "start-mcp-server",
         "--enable-web-dashboard",
         "false"
-      ]
+      ],
+      "autoApprove": {
+        "commands": ["*"]
+      }
     },
     "context7": {
       "type": "http",
