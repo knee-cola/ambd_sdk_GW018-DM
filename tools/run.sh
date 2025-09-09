@@ -22,7 +22,7 @@ cleanup_build_artifacts() {
             }
         fi
     }
-    
+
     # Clean firmware binary directories (safe - only contain generated binaries)
     clean_directory "project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp/asdk/image" "Cleaning LP image directory"
     clean_directory "project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/asdk/image" "Cleaning HP image directory"
