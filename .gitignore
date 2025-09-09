@@ -13,6 +13,14 @@ provision_log.csv
 *.hex
 *.axf
 
+# Toolchain downloads and installations
+project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/toolchain/
+project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp/toolchain/
+
+# Generated build info
+project/realtek_amebaD_va0_example/inc/inc_hp/build_info.h
+project/realtek_amebaD_va0_example/inc/inc_lp/build_info.h
+
 # IDE and editor files
 .vscode/
 *.swp

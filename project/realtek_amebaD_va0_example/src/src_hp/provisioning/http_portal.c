@@ -164,16 +164,46 @@ static int parse_form_data(const char *data, char *ssid, int ssid_len,
     return 0;
 }
 
+/* Scan completion handler for HTTP portal */
+static rtw_scan_result_t g_scan_results[CONFIG_WIFI_SCAN_MAX_RESULTS];
+static int g_scan_count = 0;
+static rtw_bool_t g_scan_complete = RTW_FALSE;
+
+static rtw_result_t scan_result_handler(rtw_scan_handler_result_t* malloced_scan_result)
+{
+    if (malloced_scan_result->scan_complete != RTW_TRUE) {
+        if (g_scan_count < CONFIG_WIFI_SCAN_MAX_RESULTS) {
+            memcpy(&g_scan_results[g_scan_count], &malloced_scan_result->ap_details, 
+                   sizeof(rtw_scan_result_t));
+            g_scan_count++;
+        }
+    } else {
+        g_scan_complete = RTW_TRUE;
+    }
+    return RTW_SUCCESS;
+}
+
 static int wifi_scan_and_format_json(char *json_buf, int buf_len)
 {
-    rtw_scan_result_t scan_results[CONFIG_WIFI_SCAN_MAX_RESULTS];
-    int scan_count = 0;
+    g_scan_count = 0;
+    g_scan_complete = RTW_FALSE;
     
     /* Start Wi-Fi scan */
-    if (wifi_scan_networks(scan_results, &scan_count, 
-                          CONFIG_WIFI_SCAN_MAX_RESULTS, 
-                          CONFIG_PORTAL_SCAN_TIMEOUT_S * 1000) != 0) {
+    if (wifi_scan_networks(scan_result_handler, NULL) != RTW_SUCCESS) {
         HTTP_LOG("Wi-Fi scan failed");
+        snprintf(json_buf, buf_len, "[]");
+        return strlen(json_buf);
+    }
+    
+    /* Wait for scan completion */
+    int timeout = CONFIG_PORTAL_SCAN_TIMEOUT_S * 10;
+    while (!g_scan_complete && timeout > 0) {
+        vTaskDelay(pdMS_TO_TICKS(100));
+        timeout--;
+    }
+    
+    if (!g_scan_complete) {
+        HTTP_LOG("Wi-Fi scan timeout");
         snprintf(json_buf, buf_len, "[]");
         return strlen(json_buf);
     }
@@ -182,34 +212,29 @@ static int wifi_scan_and_format_json(char *json_buf, int buf_len)
     int pos = 0;
     pos += snprintf(json_buf + pos, buf_len - pos, "[");
     
-    for (int i = 0; i < scan_count && pos < buf_len - 20; i++) {
+    for (int i = 0; i < g_scan_count && pos < buf_len - 20; i++) {
         if (i > 0) {
             pos += snprintf(json_buf + pos, buf_len - pos, ",");
         }
         pos += snprintf(json_buf + pos, buf_len - pos, "\"%s\"", 
-                       scan_results[i].SSID.val);
+                       g_scan_results[i].SSID.val);
     }
     
     pos += snprintf(json_buf + pos, buf_len - pos, "]");
     
-    HTTP_LOG("Wi-Fi scan found %d networks", scan_count);
+    HTTP_LOG("Wi-Fi scan found %d networks", g_scan_count);
     return pos;
 }
 
 static int attempt_wifi_connection(const char *ssid, const char *password)
 {
-    rtw_wifi_config_t wifi_config = {0};
-    
-    /* Configure Wi-Fi parameters */
-    wifi_config.mode = RTW_MODE_STA;
-    strncpy((char *)wifi_config.ssid, ssid, sizeof(wifi_config.ssid) - 1);
-    strncpy((char *)wifi_config.password, password, sizeof(wifi_config.password) - 1);
+    rtw_security_t security_type;
     
     /* Determine security type based on password */
     if (strlen(password) == 0) {
-        wifi_config.security_type = RTW_SECURITY_OPEN;
+        security_type = RTW_SECURITY_OPEN;
     } else {
-        wifi_config.security_type = RTW_SECURITY_WPA2_AES_PSK;
+        security_type = RTW_SECURITY_WPA2_AES_PSK;
     }
     
     HTTP_LOG("Attempting to connect to SSID: %.20s", ssid);
@@ -219,11 +244,11 @@ static int attempt_wifi_connection(const char *ssid, const char *password)
     vTaskDelay(pdMS_TO_TICKS(1000));
     
     /* Connect to network */
-    int ret = wifi_connect((char *)wifi_config.ssid, 
-                          wifi_config.security_type,
-                          (char *)wifi_config.password, 
-                          strlen((char *)wifi_config.ssid),
-                          strlen((char *)wifi_config.password),
+    int ret = wifi_connect((char *)ssid, 
+                          security_type,
+                          (char *)password, 
+                          strlen(ssid),
+                          strlen(password),
                           -1, NULL);
     
     if (ret == RTW_SUCCESS) {
