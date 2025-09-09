@@ -26,13 +26,14 @@ RUN dnf update -y && \
         && \
     dnf clean all
 
-# Create working directory
+# Create working directory and flash tools directory
 WORKDIR /workspace
+RUN mkdir -p /workspace/flash
 
 # Download the official flashing tool for GW018-DM
-RUN wget -O upload_image_tool_linux https://github.com/ambiot/ambd_arduino/raw/dev/Arduino_package/ameba_d_tools_linux/upload_image_tool_linux && \
-    wget -O imgtool_flashloader_amebad.bin https://github.com/Ameba-AIoT/ameba-arduino-d/raw/refs/heads/dev/Arduino_package/ameba_d_tools_linux/tools/linux/image_tool/imgtool_flashloader_amebad.bin && \
-    chmod +x upload_image_tool_linux
+RUN wget -O /workspace/flash/upload_image_tool_linux https://github.com/ambiot/ambd_arduino/raw/dev/Arduino_package/ameba_d_tools_linux/upload_image_tool_linux && \
+    wget -O /workspace/flash/imgtool_flashloader_amebad.bin https://github.com/Ameba-AIoT/ameba-arduino-d/raw/refs/heads/dev/Arduino_package/ameba_d_tools_linux/tools/linux/image_tool/imgtool_flashloader_amebad.bin && \
+    chmod +x /workspace/flash/upload_image_tool_linux
 
 # Set the working directory to /workspace for mounted volume
 WORKDIR /workspace
