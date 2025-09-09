@@ -58,13 +58,12 @@ if ! DEVICE_MAC="$device_mac" make all 2>&1 | tee "$build_output_lp"; then
 fi
 
 # Validate LP build success
-if ! validate_build "LP" "$build_output_lp" "asdk/image/km0_boot_all.bin" "asdk/image/km0_km4_image2.bin"; then
+if ! validate_build "LP" "$build_output_lp" "asdk/image/km0_boot_all.bin"; then
     exit 1
 fi
 
 echo "Copying LP (Low Power) binaries to flash directory..."
 cp asdk/image/km0_boot_all.bin /workspace/flash/
-cp asdk/image/km0_km4_image2.bin /workspace/flash/
 
 echo "Building HP (High Performance) project..."
 cd /workspace/ambd_sdk_GW018-DM/project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/
@@ -81,12 +80,13 @@ if ! DEVICE_MAC="$device_mac" make all 2>&1 | tee "$build_output_hp"; then
 fi
 
 # Validate HP build success
-if ! validate_build "HP" "$build_output_hp" "asdk/image/km4_boot_all.bin"; then
+if ! validate_build "HP" "$build_output_hp" "asdk/image/km4_boot_all.bin" "asdk/image/km0_km4_image2.bin"; then
     exit 1
 fi
 
 echo "Copying HP (High Performance) binaries to flash directory..."
 cp asdk/image/km4_boot_all.bin /workspace/flash/
+cp asdk/image/km0_km4_image2.bin /workspace/flash/
 
 echo "Build process completed successfully!"
 echo "All firmware binaries have been generated and validated."
