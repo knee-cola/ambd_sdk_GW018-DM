@@ -101,6 +101,7 @@
 
 /* Captive Portal Wi-Fi Provisioning */
 #define CONFIG_CAPTIVE_PORTAL		1
+#define CONFIG_PORTAL_DEBUG		1
 #endif
 #if CONFIG_ENABLE_P2P
 #define CONFIG_ENABLE_WPS_AP		1
