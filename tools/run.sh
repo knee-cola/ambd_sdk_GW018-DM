@@ -9,31 +9,15 @@ cleanup_build_artifacts() {
     echo "Cleaning build artifacts from build-only directories..."
     cd "$PWD/../"
     
-    # Function to clean a directory with permission handling
-    clean_directory() {
-        local dir="$1"
-        local description="$2"
-        if [ -d "$dir" ]; then
-            echo "  $description..."
-            # First try to fix permissions, then clean
-            find "$dir" -type f -exec chmod u+w {} \; 2>/dev/null || true
-            git clean -fdx "$dir/" 2>/dev/null || {
-                echo "    Warning: Some files in $dir may require manual removal"
-            }
-        fi
-    }
-
-    # Clean firmware binary directories (safe - only contain generated binaries)
-    clean_directory "project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp/asdk/image" "Cleaning LP image directory"
-    clean_directory "project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/asdk/image" "Cleaning HP image directory"
-    clean_directory "project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/asdk/build" "Cleaning HP build directory"
-    
-    # Clean make object directories (safe - only contain .o, .d, .s, .su files)
-    clean_directory "project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/asdk/make" "Cleaning HP make artifacts"
-    clean_directory "project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp/asdk/make" "Cleaning LP make artifacts"
-    
-    # Clean component build artifacts (safe - only contain build files)
-    clean_directory "component" "Cleaning component build artifacts"
+    sudo git clean -fdx project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/asdk/build/
+    sudo git clean -fdx project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/asdk/image/
+    sudo git clean -fdx project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/toolchain/asdk/asdk-6.4.1-linux-newlib-build-2773-i686.tar.bz2
+    sudo git clean -fdx project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/toolchain/linux/
+    sudo git clean -fdx project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp/asdk/build/
+    sudo git clean -fdx project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp/asdk/image/
+    sudo git clean -fdx project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp/toolchain/linux/
+    sudo git clean -fdx project/realtek_amebaD_va0_example/inc/inc_hp/build_info.h
+    sudo git clean -fdx project/realtek_amebaD_va0_example/inc/inc_lp/build_info.h
     
     echo "Build artifacts cleaned safely (source code preserved)"
 }
