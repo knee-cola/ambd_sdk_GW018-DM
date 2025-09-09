@@ -99,9 +99,9 @@ build_run_args() {
         "--tty"                            # Allocate pseudo-TTY
         "--name" "$CONTAINER_NAME"         # Container name
         # Mount `tools` directory for scripts and tools
-        "--volume" "$(pwd)/tools:/workspace/tools"
+        "--volume" "$(pwd)../tools:/workspace/tools"
         # Mount current directory for storing build artifacts
-        "--volume" "$(pwd)/build:/workspace/build"
+        "--volume" "$(pwd)../build:/workspace/build"
         # Mount the example project which will be used for building
         "--volume" "$(pwd)../project:/workspace/project"
     )
