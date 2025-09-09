@@ -3,8 +3,8 @@
  * Uses the same flash storage mechanism as AT commands for compatibility
  */
 
-#include "wifi_store.h"
-#include "provisioning_config.h"
+#include "provisioning/wifi_store.h"
+#include "provisioning/provisioning_config.h"
 #include "ameba_soc.h"
 #include "main.h"
 #include "flash_api.h"

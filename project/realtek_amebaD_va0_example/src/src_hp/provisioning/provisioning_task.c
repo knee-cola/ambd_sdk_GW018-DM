@@ -3,11 +3,11 @@
  * Orchestrates the entire captive portal Wi-Fi provisioning process
  */
 
-#include "provisioning_task.h"
-#include "provisioning_config.h"
-#include "wifi_store.h"
-#include "dns_captive.h"
-#include "http_portal.h"
+#include "provisioning/provisioning_task.h"
+#include "provisioning/provisioning_config.h"
+#include "provisioning/wifi_store.h"
+#include "provisioning/dns_captive.h"
+#include "provisioning/http_portal.h"
 #include "ameba_soc.h"
 #include "main.h"
 #include "wifi_conf.h"
@@ -292,7 +292,7 @@ int provisioning_run_if_needed(void)
     if (g_prov_state == PROV_STATE_SUCCESS && g_prov_should_reboot) {
         PROV_LOG("Provisioning successful, system will reboot in 3 seconds");
         vTaskDelay(pdMS_TO_TICKS(3000));
-        sys_reset();
+        NVIC_SystemReset();
         return 1; /* Should not reach here */
     } else if (g_prov_state == PROV_STATE_TIMEOUT) {
         PROV_LOG("Provisioning timed out, continuing with normal operation");

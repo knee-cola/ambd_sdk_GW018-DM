@@ -3,9 +3,9 @@
  * Provides minimal HTTP server for Wi-Fi provisioning interface
  */
 
-#include "http_portal.h"
-#include "provisioning_config.h"
-#include "wifi_store.h"
+#include "provisioning/http_portal.h"
+#include "provisioning/provisioning_config.h"
+#include "provisioning/wifi_store.h"
 #include "ameba_soc.h"
 #include "main.h"
 #include "lwip/sockets.h"

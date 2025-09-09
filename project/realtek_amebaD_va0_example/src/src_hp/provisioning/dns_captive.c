@@ -3,8 +3,8 @@
  * Hijacks all DNS queries and redirects them to the captive portal IP
  */
 
-#include "dns_captive.h"
-#include "provisioning_config.h"
+#include "provisioning/dns_captive.h"
+#include "provisioning/provisioning_config.h"
 #include "ameba_soc.h"
 #include "main.h"
 #include "lwip/sockets.h"
