@@ -22,6 +22,20 @@ ICON_FLASH="⚡"
 ICON_COPY="📁"
 ICON_MAC="🏷️"
 
+echo $PWD
+
+# Check if running inside container by verifying expected directory structure
+if [[ "$PWD" != "/workspace" ]]; then
+    echo -e "${RED}${ICON_ERROR} This script must be run inside a Docker container!${NC}"
+    echo ""
+    echo -e "${BLUE}${ICON_INFO}  To build the firmware, please follow these steps:${NC}"
+    echo -e "${CYAN}  1. ${NC}Run the container: ${YELLOW}./run.sh${NC}"
+    echo -e "${CYAN}  2. ${NC}Inside the container, run: ${YELLOW}./build.sh${NC}"
+    echo ""
+    echo -e "${YELLOW}${ICON_WARNING}  The build script requires the containerized build environment${NC}"
+    echo -e "${YELLOW}   with all necessary tools and dependencies.${NC}"
+    exit 1
+fi
 echo -e "${CYAN}${ICON_BUILD} Building firmware...${NC}"
 
 # Project paths
