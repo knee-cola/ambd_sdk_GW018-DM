@@ -15,6 +15,10 @@ fi
 
 echo "Using device MAC address: $device_mac"
 
+echo "Fixing permissions for project_lp and project_hp directories..."
+chmod -R 777 /workspace/ambd_sdk_GW018-DM/project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp
+chmod -R 777 /workspace/ambd_sdk_GW018-DM/project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp
+
 echo "Building LP (Low Power) project..."
 cd /workspace/ambd_sdk_GW018-DM/project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp
 make clean
