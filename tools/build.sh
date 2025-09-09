@@ -33,7 +33,7 @@ if [[ "$PWD" != "/workspace" ]]; then
     echo -e "${CYAN}  2. ${NC}Inside the container, run: ${YELLOW}./build.sh${NC}"
     echo ""
     echo -e "${YELLOW}${ICON_WARNING}  The build script requires the containerized build environment${NC}"
-    echo -e "${YELLOW}${ICON_INFO}  with all necessary tools and dependencies.${NC}"
+    echo -e "${YELLOW}   with all necessary tools and dependencies.${NC}"
     exit 1
 fi
 echo -e "${CYAN}${ICON_BUILD} Building firmware...${NC}"
