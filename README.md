@@ -73,8 +73,44 @@ awk -F' ' '{print $2$3$4$5}' myfirmwaredump.cap | xxd -r -p | xxd -e | awk -F' '
 Congratulations! You now have a backup and theoretically you can restore it (or parts of it) using ImageTool in case anything goes wrong.
 
 ## 3) Build the new firmware
-Now it's time to clone this repo, install the needed dependencies and build the gateway's new firmware out of the AmebaD sdk :)
+
+You can build the firmware using either the **Docker-based method (recommended)** or the **manual method**. The Docker method provides a consistent build environment and handles all dependencies automatically.
+
+### Method A: Docker-based Build (Recommended) 🐳
+
+This method uses Docker to provide a consistent build environment with all necessary tools pre-installed.
+
+```bash
+git clone https://github.com/jasperw1996/ambd_sdk_GW018-DM
+cd ambd_sdk_GW018-DM/tools/
+./run.sh
 ```
+
+Inside the container, run the build script:
+```bash
+./build.sh
+```
+
+The build script will:
+- ✅ Validate the containerized environment
+- 🏷️ Prompt for your device's MAC address
+- 🔨 Build both LP (Low Power) and HP (High Performance) projects
+- 📁 Copy binaries to the flash directory
+- 🔍 Detect available serial devices automatically
+- ⚡ Optionally flash the firmware directly
+
+**Features:**
+- 🎨 **Colorful output** with progress indicators and status icons
+- 🔧 **Build validation** ensures successful compilation
+- 📱 **Serial device detection** finds `/dev/ttyUSB*` and `/dev/ttyACM*` devices
+- 🛡️ **Error handling** with clear failure messages and logs
+- 🧹 **Automatic cleanup** restores file permissions after build
+
+### Method B: Manual Build
+
+If you prefer to build manually or don't want to use Docker:
+
+```bash
 sudo dnf install make glibc-devel.i686 ncurses-compat-libs.i686 
 git clone https://github.com/jasperw1996/ambd_sdk_GW018-DM
 cd ambd_sdk_GW018-DM/project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp/
@@ -90,7 +126,20 @@ chmod -R 777 ../project_hp/
 Then clean up the environment with `make clean` and try again. Finally you'll have a bunch if images in the `/adsk/image` subdirectory of `project_lp` and `project_hp`. We'll need three of them in the next step to flash the new firmware to the gateway.
 
 ## 4) Flash the firmware to the gateway
-You can flash the new firmware to the gateway using Realtek ImageTool – there is a GUI for windows, but you might also use the Linux CLI from AmebaD Arduino SDK. Choose whatever you prefer :)
+
+### Docker-based Flashing (Integrated) 🐳
+
+If you used the Docker-based build method, the `build.sh` script can automatically flash the firmware:
+- 🔍 **Auto-detects serial devices** - finds connected USB serial adapters
+- 📱 **Interactive device selection** - choose from multiple devices if available  
+- ⚡ **Integrated flashing** - uses the same ImageTool with proper device selection
+- 🛡️ **Error handling** - validates device connection before attempting flash
+
+The build script will prompt you to flash after a successful build. Just connect your UART adapter and follow the prompts!
+
+### Manual Flashing Methods
+
+You can also flash the firmware manually using Realtek ImageTool – there is a GUI for Windows, or you can use the Linux CLI from AmebaD Arduino SDK.
 
 ### a) Flash using ImageTool CLI (Linux)
 Download the [CLI executable from AmebaD Arduino SDK](https://github.com/ambiot/ambd_arduino/raw/dev/Arduino_package/ameba_d_tools_linux/upload_image_tool_linux). Grab `km0_boot_all.bin` from `project_lp` as well as `km4_boot_all.bin` and `km0_km4_image2.bin` from `project_hp` out of your build's image folders and put them in the same directory as the ImageTool executable. 
@@ -127,6 +176,19 @@ Now grab `km0_boot_all.bin` from `project_lp` as well as `km4_boot_all.bin` and 
 
 Click on "Download", wish the best and wait a minute :) You can see in the logs if the flashing process went well. If not – just flash it again, as long as you stay in `UART_DOWNLOAD` mode, everything should be fine. Make sure that flashing succeeded, then power off the gateway. Connect it to your Linux machine again, fire up minicom and power on the gateway. You should see some boot logs again, containing `!!!!!!!!!!!!!!!! Hello from KM0 !!!!!!!!!!!!!!!!!!!!!!` and `!!!!!!!!!!!!!!!! Hello from KM4 1!!!!!!!!!!!!!!!!!!!!!!`. After a few seconds, you'll get a shell and can connect to your WiFi.
 
+## 4.1) Cleanup and Troubleshooting 🧹
+
+### Docker Build Cleanup
+The Docker-based build system automatically handles cleanup:
+- After exiting the container, you'll be prompted to clean build artifacts
+- Run `./run.sh --clean` to manually clean build artifacts
+- File permissions are automatically restored using `git restore`
+
+### Troubleshooting Tips
+- **Container not detected**: Make sure you're running `./build.sh` inside the container (after `./run.sh`)
+- **Serial device not found**: Check USB connections and verify device appears as `/dev/ttyUSB*` or `/dev/ttyACM*`
+- **Build fails**: Check for missing dependencies or permission issues - Docker method handles this automatically
+- **Permission issues**: Use `git status` to check for modified files, run cleanup to restore permissions
 
 ## 5) Connect your gateway to WiFi
 At this point, the procedure is nearly identical to the [WRG1 hack](https://github.com/parasite85/tuya_tygwzw1_hack). Type in your WiFi SSID, your passphrase and connect:
