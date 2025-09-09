@@ -12,6 +12,21 @@ provision_log.csv
 *.map
 *.hex
 *.axf
+*.d
+*.i
+*.s
+*.su
+
+# Generated libraries
+project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/asdk/lib/application/lib_user.a
+
+# Build directories
+project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/asdk/build/
+project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/asdk/image/
+project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp/asdk/build/
+project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp/asdk/image/
+project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/asdk/make/
+project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp/asdk/make/
 
 # Toolchain downloads and installations
 project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/toolchain/
