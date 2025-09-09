@@ -24,6 +24,89 @@ ICON_MAC="🏷️"
 
 echo -e "${CYAN}${ICON_BUILD} Building firmware...${NC}"
 
+# Project paths
+PROJECT_LP_DIR="/workspace/ambd_sdk_GW018-DM/project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp"
+PROJECT_HP_DIR="/workspace/ambd_sdk_GW018-DM/project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp"
+
+# Permission backup files
+PERMISSIONS_LP_FILE=""
+PERMISSIONS_HP_FILE=""
+
+# Function to backup directory permissions
+backup_permissions() {
+    local dir="$1"
+    local backup_file="$2"
+    
+    echo -e "${CYAN}${ICON_INFO} Backing up permissions for $(basename "$dir")...${NC}"
+    
+    # Create temporary file for permission backup
+    backup_file=$(mktemp)
+    
+    # Save current permissions using find and stat
+    find "$dir" -type f -exec stat -c "%n %a" {} \; > "$backup_file" 2>/dev/null || {
+        echo -e "${YELLOW}${ICON_WARNING} Warning: Could not backup all file permissions in $dir${NC}"
+    }
+    find "$dir" -type d -exec stat -c "%n %a" {} \; >> "$backup_file" 2>/dev/null || {
+        echo -e "${YELLOW}${ICON_WARNING} Warning: Could not backup all directory permissions in $dir${NC}"
+    }
+    
+    echo "$backup_file"
+}
+
+# Function to restore directory permissions
+restore_permissions() {
+    local backup_file="$1"
+    local description="$2"
+    
+    if [[ -f "$backup_file" ]]; then
+        echo -e "${CYAN}${ICON_INFO} Restoring $description permissions...${NC}"
+        
+        while IFS=' ' read -r file_path perm; do
+            if [[ -e "$file_path" ]]; then
+                chmod "$perm" "$file_path" 2>/dev/null || {
+                    echo -e "${YELLOW}${ICON_WARNING} Warning: Could not restore permissions for $file_path${NC}"
+                }
+            fi
+        done < "$backup_file"
+        
+        # Clean up backup file
+        rm -f "$backup_file" 2>/dev/null || true
+    fi
+}
+
+# Function to cleanup and restore permissions on exit
+cleanup_and_restore() {
+    local exit_code=$?
+    
+    # Only show cleanup message if not a normal exit
+    if [[ $exit_code -ne 0 ]]; then
+        echo -e "${YELLOW}${ICON_INFO} Build failed - cleaning up and restoring permissions...${NC}"
+    else
+        echo -e "${CYAN}${ICON_INFO} Restoring original permissions...${NC}"
+    fi
+    
+    # Restore LP permissions
+    if [[ -n "$PERMISSIONS_LP_FILE" ]]; then
+        restore_permissions "$PERMISSIONS_LP_FILE" "LP project"
+    fi
+    
+    # Restore HP permissions
+    if [[ -n "$PERMISSIONS_HP_FILE" ]]; then
+        restore_permissions "$PERMISSIONS_HP_FILE" "HP project"
+    fi
+    
+    # Clean up temporary build output files
+    rm -f "$build_output_lp" "$build_output_hp" 2>/dev/null || true
+    
+    # Only exit with error code if this was an error exit
+    if [[ $exit_code -ne 0 ]]; then
+        exit $exit_code
+    fi
+}
+
+# Set up trap to ensure cleanup happens on any exit
+trap cleanup_and_restore EXIT
+
 # Helper function to validate build success
 validate_build() {
     local project_name="$1"
@@ -59,12 +142,18 @@ fi
 
 echo -e "${GREEN}${ICON_MAC} Using device MAC address: $device_mac${NC}"
 
-echo -e "${YELLOW}${ICON_INFO} Fixing permissions for project_lp and project_hp directories...${NC}"
-chmod -R 777 /workspace/ambd_sdk_GW018-DM/project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp
-chmod -R 777 /workspace/ambd_sdk_GW018-DM/project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp
+# Backup original permissions before changing them
+echo -e "${YELLOW}${ICON_INFO} Backing up and setting permissions for build directories...${NC}"
+PERMISSIONS_LP_FILE=$(backup_permissions "$PROJECT_LP_DIR")
+PERMISSIONS_HP_FILE=$(backup_permissions "$PROJECT_HP_DIR")
+
+# Set permissions for Docker build environment
+echo -e "${CYAN}${ICON_INFO} Setting build permissions (777)...${NC}"
+chmod -R 777 "$PROJECT_LP_DIR"
+chmod -R 777 "$PROJECT_HP_DIR"
 
 echo -e "${PURPLE}${ICON_BUILD} Building LP (Low Power) project...${NC}"
-cd /workspace/ambd_sdk_GW018-DM/project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp
+cd "$PROJECT_LP_DIR"
 make clean
 
 # Capture build output and check for success
@@ -85,7 +174,7 @@ echo -e "${BLUE}${ICON_COPY} Copying LP (Low Power) binaries to flash directory.
 cp asdk/image/km0_boot_all.bin /workspace/flash/
 
 echo -e "${PURPLE}${ICON_BUILD} Building HP (High Performance) project...${NC}"
-cd /workspace/ambd_sdk_GW018-DM/project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/
+cd "$PROJECT_HP_DIR"
 
 make clean
 
@@ -109,9 +198,6 @@ cp asdk/image/km0_km4_image2.bin /workspace/flash/
 
 echo -e "${GREEN}${ICON_SUCCESS} Build process completed successfully!${NC}"
 echo -e "${GREEN}${ICON_SUCCESS} All firmware binaries have been generated and validated.${NC}"
-
-# Clean up temporary build output files
-rm -f "$build_output_lp" "$build_output_hp" 2>/dev/null || true
 
 # Detect available serial devices
 echo -e "${CYAN}${ICON_INFO} Detecting serial devices...${NC}"
