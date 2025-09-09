@@ -109,14 +109,14 @@ build_run_args() {
     # Detect and add serial devices
     local devices=($(detect_serial_devices))
     if [[ ${#devices[@]} -gt 0 ]]; then
-        print_success "Found ${#devices[@]} serial device(s): ${devices[*]}"
+        print_success "Found ${#devices[@]} serial device(s): ${devices[*]}" >&2
         for device in "${devices[@]}"; do
             run_args+=("--device" "$device")
         done
     else
-        print_warning "No serial devices found"
-        print_info "You can still build firmware, but flashing will require serial device access"
-        print_info "Make sure your USB-UART adapter is connected before flashing"
+        print_warning "No serial devices found" >&2
+        print_info "You can still build firmware, but flashing will require serial device access" >&2
+        print_info "Make sure your USB-UART adapter is connected before flashing" >&2
     fi
     
     echo "${run_args[@]}"
