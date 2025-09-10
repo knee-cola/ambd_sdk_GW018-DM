@@ -1,4 +1,23 @@
 #!/bin/bash
+
+# Color and icon definitions
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+# Icons
+ICON_SUCCESS="✅ "
+ICON_ERROR="❌ "
+ICON_WARNING="⚠️  "
+ICON_INFO="ℹ️  "
+ICON_SERIAL="📡 "
+ICON_BUILD="🔨 "
+ICON_DOCKER="🐳 "
+ICON_CLEAN="🧹 "
+
 set -e # Exit on error
 
 IMAGE_NAME="gw018-builder-flasher:latest"
@@ -114,7 +133,7 @@ esac
 
 # Function to clean build artifacts safely using selective git clean
 cleanup_build_artifacts() {
-    echo "Cleaning build artifacts from build-only directories..."
+    echo -e "${CYAN}${ICON_INFO}Cleaning build artifacts from build-only directories...${NC}"
     cd "$PWD/../"
     
     sudo git clean -fdx project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/
@@ -124,31 +143,31 @@ cleanup_build_artifacts() {
     sudo git restore project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/
     sudo git restore project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp/
     
-    echo "Build artifacts cleaned safely (source code preserved)"
+    echo -e "${GREEN}${ICON_SUCCESS}Build artifacts cleaned safely (source code preserved)${NC}"
 }
 
 
 # Validate we're in the tools directory
 if [[ ! -f "Dockerfile" ]]; then
-    echo "Error: Must run from tools/ directory (Dockerfile not found)"
+    echo -e "${RED}${ICON_ERROR}Error: Must run from tools/ directory (Dockerfile not found)${NC}"
     exit 1
 fi
 
 # Remove existing container if it exists
 if docker ps -a --format "table {{.Names}}" | grep -q "^$CONTAINER_NAME$"; then
-    echo "Removing existing container: $CONTAINER_NAME"
+    echo -e "${YELLOW}${ICON_INFO}Removing existing container: $CONTAINER_NAME${NC}"
     docker rm -f "$CONTAINER_NAME" > /dev/null 2>&1
 fi
 
 # Check if Docker image exists
 if ! docker images --format "table {{.Repository}}:{{.Tag}}" | grep -q "^$IMAGE_NAME$"; then
-    echo "Docker image $IMAGE_NAME not found. Building it..."
+    echo -e "${BLUE}${ICON_DOCKER}Docker image $IMAGE_NAME not found. Building it...${NC}"
     docker build -t gw018-builder-flasher .
     if [ $? -ne 0 ]; then
-        echo "Error: Failed to build Docker image"
+        echo -e "${RED}${ICON_ERROR}Failed to build Docker image${NC}"
         exit 1
     fi
-    echo "Docker image built successfully"
+    echo -e "${GREEN}${ICON_SUCCESS}Docker image built successfully${NC}"
 fi
 
 # Find all serial devices and build device options
@@ -159,7 +178,7 @@ DEVICE_COUNT=0
 for device in /dev/ttyUSB*; do
     if [ -c "$device" ] 2>/dev/null; then
         DEVICE_OPTS="$DEVICE_OPTS --device $device"
-        echo "Found serial device: $device"
+        echo -e "${GREEN}${ICON_SUCCESS}Found serial device: $device${NC}"
         ((DEVICE_COUNT++))
     fi
 done
@@ -168,32 +187,32 @@ done
 for device in /dev/ttyACM*; do
     if [ -c "$device" ] 2>/dev/null; then
         DEVICE_OPTS="$DEVICE_OPTS --device $device"
-        echo "Found serial device: $device"
+        echo -e "${GREEN}${ICON_SUCCESS}Found serial device: $device${NC}"
         ((DEVICE_COUNT++))
     fi
 done
 
 if [ $DEVICE_COUNT -eq 0 ]; then
-    echo "Warning: No serial devices found (/dev/ttyUSB*, /dev/ttyACM*)"
-    echo "         Device may not be connected or accessible"
+    echo -e "${YELLOW}${ICON_WARNING}No serial devices found (/dev/ttyUSB*, /dev/ttyACM*)${NC}"
+    echo -e "${YELLOW}${ICON_INFO}Device may not be connected or accessible${NC}"
 else
-    echo "Total serial devices found: $DEVICE_COUNT"
+    echo -e "${GREEN}${ICON_SUCCESS}Total serial devices found: $DEVICE_COUNT${NC}"
 fi
 
 # Determine container command based on mode
 case "$MODE" in
     interactive)
-        echo "Starting container in interactive mode..."
+        echo -e "${CYAN}${ICON_INFO}Starting container in interactive mode...${NC}"
         CONTAINER_CMD="/bin/bash"
         INTERACTIVE_FLAG="-ti"
         ;;
     build)
-        echo "Starting container and running build script with args: $BUILD_ARGS"
+        echo -e "${CYAN}${ICON_BUILD}Starting container and running build script with args: $BUILD_ARGS${NC}"
         CONTAINER_CMD="/bin/bash"
         INTERACTIVE_FLAG="-ti"
         ;;
     minicom)
-        echo "Starting container and running minicom script..."
+        echo -e "${CYAN}${ICON_SERIAL}Starting container and running minicom script...${NC}"
         CONTAINER_CMD="/workspace/minicom.sh"
         INTERACTIVE_FLAG="-ti"
         ;;
@@ -223,22 +242,22 @@ fi
 
 # After container exits, handle cleanup based on --clean flag (only for build mode)
 echo ""
-echo "Container session ended."
+echo -e "${BLUE}${ICON_INFO}Container session ended.${NC}"
 
 if [[ "$MODE" == "build" ]]; then
     if [[ "$CLEAN_AFTER" == true ]]; then
-        echo "Cleaning build artifacts..."
+        echo -e "${YELLOW}${ICON_CLEAN}Cleaning build artifacts...${NC}"
         cleanup_build_artifacts
-        echo "Cleanup complete."
+        echo -e "${GREEN}${ICON_SUCCESS}Cleanup complete.${NC}"
     else
-        echo "Would you like to clean build artifacts? (y/n)"
+        echo -e "${BLUE}${ICON_INFO}Would you like to clean build artifacts? (y/n)${NC}"
         read -r response
         if [[ "$response" == "y" || "$response" == "Y" ]]; then
-            echo "Cleaning build artifacts..."
+            echo -e "${YELLOW}${ICON_CLEAN}Cleaning build artifacts...${NC}"
             cleanup_build_artifacts
-            echo "Cleanup complete."
+            echo -e "${GREEN}${ICON_SUCCESS}Cleanup complete.${NC}"
         else
-            echo "Skipping cleanup. Run with '--clean' flag to clean build artifacts automatically."
+            echo -e "${YELLOW}${ICON_INFO}Skipping cleanup. Run with '--clean' flag to clean build artifacts automatically.${NC}"
         fi
     fi
 fi
