@@ -12,17 +12,17 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Icons
-ICON_SUCCESS="✅"
-ICON_ERROR="❌"
-ICON_WARNING="⚠️"
-ICON_INFO="ℹ️"
-ICON_SERIAL="📡"
+ICON_SUCCESS="✅ "
+ICON_ERROR="❌ "
+ICON_WARNING="⚠️  "
+ICON_INFO="ℹ️  "
+ICON_SERIAL="📡 "
 
 echo -e "${CYAN}${ICON_SERIAL} GW018-DM Serial Communication${NC}"
 echo ""
 
 # Detect available serial devices
-echo -e "${BLUE}${ICON_INFO} Detecting serial devices...${NC}"
+echo -e "${BLUE}${ICON_INFO}Detecting serial devices...${NC}"
 SERIAL_DEVICES=()
 DEVICE_COUNT=0
 
@@ -30,7 +30,7 @@ DEVICE_COUNT=0
 for device in /dev/ttyUSB*; do
     if [ -c "$device" ] 2>/dev/null; then
         SERIAL_DEVICES+=("$device")
-        echo -e "${GREEN}${ICON_SUCCESS} Found serial device: $device${NC}"
+        echo -e "${GREEN}${ICON_SUCCESS}Found serial device: $device${NC}"
         ((DEVICE_COUNT++))
     fi
 done
@@ -39,14 +39,14 @@ done
 for device in /dev/ttyACM*; do
     if [ -c "$device" ] 2>/dev/null; then
         SERIAL_DEVICES+=("$device")
-        echo -e "${GREEN}${ICON_SUCCESS} Found serial device: $device${NC}"
+        echo -e "${GREEN}${ICON_SUCCESS}Found serial device: $device${NC}"
         ((DEVICE_COUNT++))
     fi
 done
 
 if [ $DEVICE_COUNT -eq 0 ]; then
-    echo -e "${RED}${ICON_ERROR} No serial devices found (/dev/ttyUSB*, /dev/ttyACM*)${NC}"
-    echo -e "${YELLOW}${ICON_WARNING} Device may not be connected or accessible${NC}"
+    echo -e "${RED}${ICON_ERROR}No serial devices found (/dev/ttyUSB*, /dev/ttyACM*)${NC}"
+    echo -e "${YELLOW}${ICON_WARNING}Device may not be connected or accessible${NC}"
     exit 1
 fi
 
@@ -66,7 +66,7 @@ else
         read -r selection
         if [[ "$selection" =~ ^[0-9]+$ ]] && [ "$selection" -ge 1 ] && [ "$selection" -le $DEVICE_COUNT ]; then
             SELECTED_DEVICE="${SERIAL_DEVICES[$((selection-1))]}"
-            echo -e "${GREEN}${ICON_SUCCESS} Selected device: $SELECTED_DEVICE${NC}"
+            echo -e "${GREEN}${ICON_SUCCESS}Selected device: $SELECTED_DEVICE${NC}"
             break
         else
             echo -e "${RED}${ICON_ERROR} Invalid selection. Please enter a number between 1 and $DEVICE_COUNT.${NC}"
