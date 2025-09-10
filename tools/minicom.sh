@@ -18,7 +18,7 @@ ICON_WARNING="⚠️  "
 ICON_INFO="ℹ️  "
 ICON_SERIAL="📡 "
 
-echo -e "${CYAN}${ICON_SERIAL} GW018-DM Serial Communication${NC}"
+echo -e "${CYAN}${ICON_SERIAL}GW018-DM Serial Communication${NC}"
 echo ""
 
 # Detect available serial devices
@@ -54,9 +54,9 @@ fi
 SELECTED_DEVICE=""
 if [ $DEVICE_COUNT -eq 1 ]; then
     SELECTED_DEVICE="${SERIAL_DEVICES[0]}"
-    echo -e "${GREEN}${ICON_SUCCESS} Using serial device: $SELECTED_DEVICE${NC}"
+    echo -e "${GREEN}${ICON_SUCCESS}Using serial device: $SELECTED_DEVICE${NC}"
 else
-    echo -e "${BLUE}${ICON_INFO} Multiple serial devices found. Please select one:${NC}"
+    echo -e "${BLUE}${ICON_INFO}Multiple serial devices found. Please select one:${NC}"
     for i in "${!SERIAL_DEVICES[@]}"; do
         echo -e "${CYAN}  $((i+1))) ${SERIAL_DEVICES[i]}${NC}"
     done
@@ -69,20 +69,20 @@ else
             echo -e "${GREEN}${ICON_SUCCESS}Selected device: $SELECTED_DEVICE${NC}"
             break
         else
-            echo -e "${RED}${ICON_ERROR} Invalid selection. Please enter a number between 1 and $DEVICE_COUNT.${NC}"
+            echo -e "${RED}${ICON_ERROR}Invalid selection. Please enter a number between 1 and $DEVICE_COUNT.${NC}"
         fi
     done
 fi
 
 echo ""
-echo -e "${YELLOW}${ICON_INFO} Starting minicom with the following settings:${NC}"
+echo -e "${YELLOW}${ICON_INFO}Starting minicom with the following settings:${NC}"
 echo -e "  Device: $SELECTED_DEVICE"
 echo -e "  Baud rate: 115200"
 echo -e "  Data bits: 8"
 echo -e "  Stop bits: 1"
 echo -e "  Parity: None"
 echo ""
-echo -e "${CYAN}${ICON_INFO} Press Ctrl+A, X to exit minicom${NC}"
+echo -e "${CYAN}${ICON_INFO}Press Ctrl+A, X to exit minicom${NC}"
 echo ""
 
 # Start minicom with appropriate settings

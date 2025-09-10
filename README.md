@@ -83,15 +83,25 @@ This method uses Docker to provide a consistent build environment with all neces
 ```bash
 git clone https://github.com/jasperw1996/ambd_sdk_GW018-DM
 cd ambd_sdk_GW018-DM/tools/
-./run.sh
 ```
 
-Inside the container, run the build script:
+**Available modes:**
+- `./run.sh build` - Build firmware and optionally flash
+- `./run.sh interactive` - Start interactive bash session for troubleshooting
+- `./run.sh minicom` - Open serial communication with the device
+
+**Build the firmware:**
 ```bash
-./build.sh
+./run.sh build
 ```
 
-The build script will:
+**Build options:**
+```bash
+./run.sh build --no-flash --clean    # Build only, clean artifacts afterward
+./run.sh build --flash /dev/ttyUSB0  # Build and flash to specific device
+```
+
+The build process will:
 - ✅ Validate the containerized environment
 - 🏷️ Prompt for your device's MAC address
 - 🔨 Build both LP (Low Power) and HP (High Performance) projects
@@ -105,6 +115,13 @@ The build script will:
 - 📱 **Serial device detection** finds `/dev/ttyUSB*` and `/dev/ttyACM*` devices
 - 🛡️ **Error handling** with clear failure messages and logs
 - 🧹 **Automatic cleanup** restores file permissions after build
+
+**Troubleshooting:**
+If you encounter build errors, use interactive mode to troubleshoot manually:
+```bash
+./run.sh interactive
+```
+Inside the container, you can examine logs, check permissions, or run build commands manually.
 
 ### Method B: Manual Build
 
@@ -129,13 +146,25 @@ Then clean up the environment with `make clean` and try again. Finally you'll ha
 
 ### Docker-based Flashing (Integrated) 🐳
 
-If you used the Docker-based build method, the `build.sh` script can automatically flash the firmware:
+The `./run.sh build` command automatically includes flashing capabilities:
 - 🔍 **Auto-detects serial devices** - finds connected USB serial adapters
 - 📱 **Interactive device selection** - choose from multiple devices if available  
-- ⚡ **Integrated flashing** - uses the same ImageTool with proper device selection
+- ⚡ **Integrated flashing** - uses ImageTool with proper device selection
 - 🛡️ **Error handling** - validates device connection before attempting flash
 
-The build script will prompt you to flash after a successful build. Just connect your UART adapter and follow the prompts!
+**Usage examples:**
+```bash
+./run.sh build                      # Build and prompt for flashing
+./run.sh build --flash /dev/ttyUSB0 # Build and flash to specific device
+./run.sh build --no-flash           # Build only, skip flashing
+```
+
+**Serial communication:**
+```bash
+./run.sh minicom                    # Open minicom for device communication
+```
+
+The build process will prompt you to flash after a successful build. Just connect your UART adapter and follow the prompts!
 
 ### Manual Flashing Methods
 
@@ -181,17 +210,18 @@ Click on "Download", wish the best and wait a minute :) You can see in the logs 
 ### Docker Build Cleanup
 The Docker-based build system automatically handles cleanup:
 - After exiting the container, you'll be prompted to clean build artifacts
-- Run `./run.sh --clean` to manually clean build artifacts
+- Use `./run.sh build --clean` to automatically clean artifacts after build
 - File permissions are automatically restored using `git restore`
 
 ### Troubleshooting Tips
-- **Container not detected**: Make sure you're running `./build.sh` inside the container (after `./run.sh`)
+- **Build fails**: Use `./run.sh interactive` to troubleshoot manually inside the container
 - **Serial device not found**: Check USB connections and verify device appears as `/dev/ttyUSB*` or `/dev/ttyACM*`
-- **Build fails**: Check for missing dependencies or permission issues - Docker method handles this automatically
-- **Permission issues**: Use `git status` to check for modified files, run cleanup to restore permissions
+- **Permission issues**: The Docker method handles this automatically; use `git status` to check for modified files
+- **Communication issues**: Use `./run.sh minicom` to test serial communication with the device
+- **Manual debugging**: In interactive mode, you can run build commands manually, check logs, and examine the build environment
 
 ## 5) Connect your gateway to WiFi
-At this point, the procedure is nearly identical to the [WRG1 hack](https://github.com/parasite85/tuya_tygwzw1_hack). Type in your WiFi SSID, your passphrase and connect:
+At this point, the procedure is nearly identical to the [WRG1 hack](https://github.com/parasite85/tuya_tygwzw1_hack). Use `./run.sh minicom` to open serial communication, then type in your WiFi SSID, your passphrase and connect:
 ```
 ATW0=myWifiName
 ATW1=myWifiPassword
