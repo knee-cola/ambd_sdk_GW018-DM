@@ -18,8 +18,18 @@ ICON_WARNING="⚠️  "
 ICON_INFO="ℹ️  "
 ICON_SERIAL="📡 "
 
-echo -e "${CYAN}${ICON_SERIAL}GW018-DM Serial Communication${NC}"
 echo ""
+echo -e "${CYAN}${ICON_SERIAL}\e[4mGW018-DM Serial Communication\e[0m${NC}"
+echo ""
+
+# Check if running inside container by verifying expected directory structure
+if [[ "$PWD" != "/workspace" ]]; then
+    echo -e "${RED}${ICON_ERROR}ERROR: this script should not be used directly (outside a Docker container)!${NC}"
+    echo ""
+    echo -e "${BLUE}${ICON_INFO}To use it run:${YELLOW} ./run.sh minicom${NC}"
+    echo -e ""
+    exit 1
+fi
 
 # Detect available serial devices
 echo -e "${BLUE}${ICON_INFO}Detecting serial devices...${NC}"
