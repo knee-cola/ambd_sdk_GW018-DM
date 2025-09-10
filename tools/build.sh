@@ -2,6 +2,29 @@
 
 # This script builds and flashes firmware for the GW018-DM device.
 # It is intended to be run inside a Docker container with the necessary build environment.
+# Usage: ./build.sh [--flash /dev/ttyUSB0] [--no-flash]
+
+# Parse command line arguments
+FLASH_DEVICE=""
+NO_FLASH=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --flash)
+            FLASH_DEVICE="$2"
+            shift 2
+            ;;
+        --no-flash)
+            NO_FLASH=true
+            shift
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Usage: ./build.sh [--flash /dev/ttyUSB0] [--no-flash]"
+            exit 1
+            ;;
+    esac
+done
 
 # Color and icon definitions
 RED='\033[0;31m'
@@ -23,6 +46,15 @@ ICON_COPY="📁"
 ICON_MAC="🏷️"
 
 echo $PWD
+
+# Verify flash device if --flash flag is used
+if [[ -n "$FLASH_DEVICE" ]]; then
+    if [[ ! -c "$FLASH_DEVICE" ]]; then
+        echo -e "${RED}${ICON_ERROR} Error: Serial device $FLASH_DEVICE does not exist or is not accessible${NC}"
+        exit 1
+    fi
+    echo -e "${GREEN}${ICON_SUCCESS} Using serial device: $FLASH_DEVICE${NC}"
+fi
 
 # Check if running inside container by verifying expected directory structure
 if [[ "$PWD" != "/workspace" ]]; then
@@ -128,65 +160,79 @@ cp asdk/image/km0_km4_image2.bin /workspace/flash/
 echo -e "${GREEN}${ICON_SUCCESS} Build process completed successfully!${NC}"
 echo -e "${GREEN}${ICON_SUCCESS} All firmware binaries have been generated and validated.${NC}"
 
-# Detect available serial devices
-echo -e "${CYAN}${ICON_INFO} Detecting serial devices...${NC}"
-SERIAL_DEVICES=()
-DEVICE_COUNT=0
-
-# Check for ttyUSB devices
-for device in /dev/ttyUSB*; do
-    if [ -c "$device" ] 2>/dev/null; then
-        SERIAL_DEVICES+=("$device")
-        echo -e "${GREEN}${ICON_SUCCESS} Found serial device: $device${NC}"
-        ((DEVICE_COUNT++))
-    fi
-done
-
-# Check for ttyACM devices
-for device in /dev/ttyACM*; do
-    if [ -c "$device" ] 2>/dev/null; then
-        SERIAL_DEVICES+=("$device")
-        echo -e "${GREEN}${ICON_SUCCESS} Found serial device: $device${NC}"
-        ((DEVICE_COUNT++))
-    fi
-done
-
-if [ $DEVICE_COUNT -eq 0 ]; then
-    echo -e "${YELLOW}${ICON_WARNING} No serial devices found (/dev/ttyUSB*, /dev/ttyACM*)${NC}"
-    echo -e "${YELLOW}${ICON_INFO} Device may not be connected or accessible${NC}"
-    echo -e "${YELLOW}${ICON_INFO} Skipping firmware flashing.${NC}"
+# Exit early if --no-flash flag is set
+if [[ "$NO_FLASH" == true ]]; then
+    echo -e "${YELLOW}${ICON_INFO} Build completed. Skipping flashing as requested.${NC}"
     exit 0
 fi
 
 # Select serial device to use
 SELECTED_DEVICE=""
-if [ $DEVICE_COUNT -eq 1 ]; then
-    SELECTED_DEVICE="${SERIAL_DEVICES[0]}"
-    echo -e "${GREEN}${ICON_SUCCESS} Using serial device: $SELECTED_DEVICE${NC}"
+
+if [[ -n "$FLASH_DEVICE" ]]; then
+    # Use pre-selected device from --flash flag
+    SELECTED_DEVICE="$FLASH_DEVICE"
 else
-    echo -e "${BLUE}${ICON_INFO} Multiple serial devices found. Please select one:${NC}"
-    for i in "${!SERIAL_DEVICES[@]}"; do
-        echo -e "${CYAN}  $((i+1))) ${SERIAL_DEVICES[i]}${NC}"
-    done
-    
-    while true; do
-        echo -e "${BLUE}Enter selection (1-$DEVICE_COUNT): ${NC}"
-        read -r selection
-        if [[ "$selection" =~ ^[0-9]+$ ]] && [ "$selection" -ge 1 ] && [ "$selection" -le $DEVICE_COUNT ]; then
-            SELECTED_DEVICE="${SERIAL_DEVICES[$((selection-1))]}"
-            echo -e "${GREEN}${ICON_SUCCESS} Selected device: $SELECTED_DEVICE${NC}"
-            break
-        else
-            echo -e "${RED}${ICON_ERROR} Invalid selection. Please enter a number between 1 and $DEVICE_COUNT.${NC}"
+    # Detect available serial devices
+    echo -e "${CYAN}${ICON_INFO} Detecting serial devices...${NC}"
+    SERIAL_DEVICES=()
+    DEVICE_COUNT=0
+
+    # Check for ttyUSB devices
+    for device in /dev/ttyUSB*; do
+        if [ -c "$device" ] 2>/dev/null; then
+            SERIAL_DEVICES+=("$device")
+            echo -e "${GREEN}${ICON_SUCCESS} Found serial device: $device${NC}"
+            ((DEVICE_COUNT++))
         fi
     done
-fi
 
-echo -e "${BLUE}${ICON_FLASH} Do you want to flash the firmware to GW018-DM now? (y/n)${NC}"
-read -r response
-if [[ "$response" != "y" ]]; then
-    echo -e "${YELLOW}${ICON_INFO} Exiting without flashing.${NC}"
-    exit 0
+    # Check for ttyACM devices
+    for device in /dev/ttyACM*; do
+        if [ -c "$device" ] 2>/dev/null; then
+            SERIAL_DEVICES+=("$device")
+            echo -e "${GREEN}${ICON_SUCCESS} Found serial device: $device${NC}"
+            ((DEVICE_COUNT++))
+        fi
+    done
+
+    if [ $DEVICE_COUNT -eq 0 ]; then
+        echo -e "${YELLOW}${ICON_WARNING} No serial devices found (/dev/ttyUSB*, /dev/ttyACM*)${NC}"
+        echo -e "${YELLOW}${ICON_INFO} Device may not be connected or accessible${NC}"
+        echo -e "${YELLOW}${ICON_INFO} Skipping firmware flashing.${NC}"
+        exit 0
+    fi
+
+    # Select serial device to use
+    if [ $DEVICE_COUNT -eq 1 ]; then
+        SELECTED_DEVICE="${SERIAL_DEVICES[0]}"
+        echo -e "${GREEN}${ICON_SUCCESS} Using serial device: $SELECTED_DEVICE${NC}"
+    else
+        echo -e "${BLUE}${ICON_INFO} Multiple serial devices found. Please select one:${NC}"
+        for i in "${!SERIAL_DEVICES[@]}"; do
+            echo -e "${CYAN}  $((i+1))) ${SERIAL_DEVICES[i]}${NC}"
+        done
+        
+        while true; do
+            echo -e "${BLUE}Enter selection (1-$DEVICE_COUNT): ${NC}"
+            read -r selection
+            if [[ "$selection" =~ ^[0-9]+$ ]] && [ "$selection" -ge 1 ] && [ "$selection" -le $DEVICE_COUNT ]; then
+                SELECTED_DEVICE="${SERIAL_DEVICES[$((selection-1))]}"
+                echo -e "${GREEN}${ICON_SUCCESS} Selected device: $SELECTED_DEVICE${NC}"
+                break
+            else
+                echo -e "${RED}${ICON_ERROR} Invalid selection. Please enter a number between 1 and $DEVICE_COUNT.${NC}"
+            fi
+        done
+    fi
+
+    # Ask for confirmation unless --flash flag is used
+    echo -e "${BLUE}${ICON_FLASH} Do you want to flash the firmware to GW018-DM now? (y/n)${NC}"
+    read -r response
+    if [[ "$response" != "y" ]]; then
+        echo -e "${YELLOW}${ICON_INFO} Exiting without flashing.${NC}"
+        exit 0
+    fi
 fi
 
 echo -e "${CYAN}${ICON_FLASH} Flashing firmware to GW018-DM using $SELECTED_DEVICE...${NC}"
