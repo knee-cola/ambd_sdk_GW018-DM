@@ -136,12 +136,11 @@ cleanup_build_artifacts() {
     echo -e "${CYAN}${ICON_INFO}Cleaning build artifacts from build-only directories...${NC}"
     cd "$PWD/../"
     
-    sudo git clean -fdx project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/
-    sudo git clean -fdx project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp/
+    sudo git clean -fdx project/realtek_amebaD_va0_example/GCC-RELEASE/
+    sudo git restore project/realtek_amebaD_va0_example/GCC-RELEASE/
     sudo git clean -fdx project/realtek_amebaD_va0_example/inc/inc_hp/build_info.h
     sudo git clean -fdx project/realtek_amebaD_va0_example/inc/inc_lp/build_info.h
-    sudo git restore project/realtek_amebaD_va0_example/GCC-RELEASE/project_hp/
-    sudo git restore project/realtek_amebaD_va0_example/GCC-RELEASE/project_lp/
+    sudo git clean -fdx component/common/
     
     echo -e "${GREEN}${ICON_SUCCESS}Build artifacts cleaned safely (source code preserved)${NC}"
 }
@@ -239,7 +238,7 @@ echo -e "${BLUE}${ICON_INFO}Container session ended.${NC}"
 
 if [[ "$MODE" == "build" ]]; then
     if [[ "$CLEAN_AFTER" == true ]]; then
-        echo -e "${YELLOW}${ICON_CLEAN}Cleaning build artifacts...${NC}"
+        echo -e "${YELLOW}${ICON_CLEAN}Cleaning build artifacts: this requires sudo privileges${NC}"
         cleanup_build_artifacts
         echo -e "${GREEN}${ICON_SUCCESS}Cleanup complete.${NC}"
     else
