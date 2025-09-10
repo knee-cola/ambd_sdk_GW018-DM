@@ -39,11 +39,11 @@ NC='\033[0m' # No Color
 ICON_BUILD="🔨"
 ICON_SUCCESS="✅"
 ICON_ERROR="❌"
-ICON_WARNING="⚠️"
-ICON_INFO="ℹ️"
+ICON_WARNING="⚠️ "
+ICON_INFO="ℹ️ "
 ICON_FLASH="⚡"
 ICON_COPY="📁"
-ICON_MAC="🏷️"
+ICON_MAC="🏷️ "
 
 # Verify flash device if --flash flag is used
 if [[ -n "$FLASH_DEVICE" ]]; then
@@ -58,11 +58,11 @@ fi
 if [[ "$PWD" != "/workspace" ]]; then
     echo -e "${RED}${ICON_ERROR} This script must be run inside a Docker container!${NC}"
     echo ""
-    echo -e "${BLUE}${ICON_INFO}  To build the firmware, please follow these steps:${NC}"
+    echo -e "${BLUE}${ICON_INFO} To build the firmware, please follow these steps:${NC}"
     echo -e "${CYAN}  1. ${NC}Run the container: ${YELLOW}./run.sh${NC}"
     echo -e "${CYAN}  2. ${NC}Inside the container, run: ${YELLOW}./build.sh${NC}"
     echo ""
-    echo -e "${YELLOW}${ICON_WARNING}  The build script requires the containerized build environment${NC}"
+    echo -e "${YELLOW}${ICON_WARNING} The build script requires the containerized build environment${NC}"
     echo -e "${YELLOW}   with all necessary tools and dependencies.${NC}"
     exit 1
 fi
