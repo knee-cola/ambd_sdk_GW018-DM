@@ -30,7 +30,7 @@ if [[ $# -lt 1 ]]; then
     echo "Usage:"
     echo "  $0 interactive"
     echo "  $0 minicom"
-    echo "  $0 build [--flash [device]] [--no-flash] [--clean]"
+    echo "  $0 build [--flash [device]] [--no-flash] [--no-clean]"
     echo ""
     echo "Modes:"
     echo "  interactive  Start interactive bash session"
@@ -40,12 +40,12 @@ if [[ $# -lt 1 ]]; then
     echo "Build mode options:"
     echo "  --flash [device]  Flash to specified device (e.g. /dev/ttyUSB0)"
     echo "  --no-flash       Build only, skip flashing"
-    echo "  --clean          Clean build artifacts after container exits"
+    echo "  --no-clean       Skip cleaning build artifacts after container exits"
     echo ""
     echo "Examples:"
     echo "  $0 interactive"
     echo "  $0 build"
-    echo "  $0 build --no-flash --clean"
+    echo "  $0 build --no-flash --no-clean"
     echo "  $0 build --flash /dev/ttyUSB0"
     echo "  $0 minicom"
     exit 1
@@ -55,7 +55,7 @@ MODE="$1"
 shift
 
 # Initialize variables
-CLEAN_AFTER=false
+CLEAN_AFTER=true
 BUILD_ARGS=""
 
 # Parse mode-specific arguments
@@ -86,13 +86,13 @@ case "$MODE" in
                     BUILD_ARGS="$BUILD_ARGS --no-flash"
                     shift
                     ;;
-                --clean)
-                    CLEAN_AFTER=true
+                --no-clean)
+                    CLEAN_AFTER=false
                     shift
                     ;;
                 *)
                     echo "Error: Unknown build option '$1'"
-                    echo "Valid build options: --flash [device], --no-flash, --clean"
+                    echo "Valid build options: --flash [device], --no-flash, --no-clean"
                     exit 1
                     ;;
             esac
@@ -102,7 +102,7 @@ case "$MODE" in
         echo "Usage:"
         echo "  $0 interactive"
         echo "  $0 minicom"
-        echo "  $0 build [--flash [device]] [--no-flash] [--clean]"
+        echo "  $0 build [--flash [device]] [--no-flash] [--no-clean]"
         echo ""
         echo "Modes:"
         echo "  interactive  Start interactive bash session"
@@ -112,12 +112,12 @@ case "$MODE" in
         echo "Build mode options:"
         echo "  --flash [device]  Flash to specified device (e.g. /dev/ttyUSB0)"
         echo "  --no-flash       Build only, skip flashing"
-        echo "  --clean          Clean build artifacts after container exits"
+        echo "  --no-clean       Skip cleaning build artifacts after container exits"
         echo ""
         echo "Examples:"
         echo "  $0 interactive"
         echo "  $0 build"
-        echo "  $0 build --no-flash --clean"
+        echo "  $0 build --no-clean"
         echo "  $0 build --flash /dev/ttyUSB0"
         echo "  $0 minicom"
         exit 0
@@ -233,7 +233,7 @@ else
       "$IMAGE_NAME"
 fi
 
-# After container exits, handle cleanup based on --clean flag (only for build mode)
+# After container exits, handle cleanup based on --no-clean flag (only for build mode)
 echo ""
 echo -e "${BLUE}${ICON_INFO}Container session ended.${NC}"
 
@@ -243,15 +243,7 @@ if [[ "$MODE" == "build" ]]; then
         cleanup_build_artifacts
         echo -e "${GREEN}${ICON_SUCCESS}Cleanup complete.${NC}"
     else
-        echo -e "${BLUE}${ICON_INFO}Would you like to clean build artifacts? (y/n)${NC}"
-        read -r response
-        if [[ "$response" == "y" || "$response" == "Y" ]]; then
-            echo -e "${YELLOW}${ICON_CLEAN}Cleaning build artifacts...${NC}"
-            cleanup_build_artifacts
-            echo -e "${GREEN}${ICON_SUCCESS}Cleanup complete.${NC}"
-        else
-            echo -e "${YELLOW}${ICON_INFO}Skipping cleanup. Run with '--clean' flag to clean build artifacts automatically.${NC}"
-        fi
+        echo -e "${YELLOW}${ICON_INFO}Skipping cleanup as requested with --no-clean flag.${NC}"
     fi
 fi
   
