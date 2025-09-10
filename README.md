@@ -86,9 +86,10 @@ cd ambd_sdk_GW018-DM/tools/
 ```
 
 **Available modes:**
-- `./run.sh build` - Build firmware and optionally flash
-- `./run.sh interactive` - Start interactive bash session for troubleshooting
-- `./run.sh minicom` - Open serial communication with the device
+- `./run.sh build [options]` - Run the build script with optional parameters
+- `./run.sh interactive` - Start interactive bash session for troubleshooting  
+- `./run.sh minicom` - Run minicom script for serial communication
+- `./run.sh --help` - Display detailed usage instructions
 
 **Build the firmware:**
 ```bash
@@ -97,13 +98,13 @@ cd ambd_sdk_GW018-DM/tools/
 
 **Build options:**
 ```bash
-./run.sh build --no-flash --clean    # Build only, clean artifacts afterward
+./run.sh build --no-flash --no-clean # Build only, skip cleaning artifacts
 ./run.sh build --flash /dev/ttyUSB0  # Build and flash to specific device
+./run.sh build --no-clean            # Build and skip cleaning artifacts after container exits
 ```
 
 The build process will:
 - ✅ Validate the containerized environment
-- 🏷️ Prompt for your device's MAC address
 - 🔨 Build both LP (Low Power) and HP (High Performance) projects
 - 📁 Copy binaries to the flash directory
 - 🔍 Detect available serial devices automatically
@@ -209,8 +210,8 @@ Click on "Download", wish the best and wait a minute :) You can see in the logs 
 
 ### Docker Build Cleanup
 The Docker-based build system automatically handles cleanup:
-- After exiting the container, you'll be prompted to clean build artifacts
-- Use `./run.sh build --clean` to automatically clean artifacts after build
+- After exiting the container, build artifacts are automatically cleaned (unless `--no-clean` is specified)
+- Use `./run.sh build --no-clean` to skip automatic cleanup after build
 - File permissions are automatically restored using `git restore`
 
 ### Troubleshooting Tips
