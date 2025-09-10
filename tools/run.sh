@@ -1,8 +1,116 @@
 #!/bin/bash
-set -e
+set -e # Exit on error
 
 IMAGE_NAME="gw018-builder-flasher:latest"
 CONTAINER_NAME="gw018-builder-flasher"
+
+# Parse and validate command line arguments
+if [[ $# -lt 1 ]]; then
+    echo "Error: At least one parameter required"
+    echo ""
+    echo "Usage:"
+    echo "  $0 interactive"
+    echo "  $0 minicom"
+    echo "  $0 build [--flash [device]] [--no-flash] [--clean]"
+    echo ""
+    echo "Modes:"
+    echo "  interactive  Start interactive bash session"
+    echo "  build        Run the build script with optional parameters"
+    echo "  minicom      Run minicom script for serial communication"
+    echo ""
+    echo "Build mode options:"
+    echo "  --flash [device]  Flash to specified device (e.g. /dev/ttyUSB0)"
+    echo "  --no-flash       Build only, skip flashing"
+    echo "  --clean          Clean build artifacts after container exits"
+    echo ""
+    echo "Examples:"
+    echo "  $0 interactive"
+    echo "  $0 build"
+    echo "  $0 build --no-flash --clean"
+    echo "  $0 build --flash /dev/ttyUSB0"
+    echo "  $0 minicom"
+    exit 1
+fi
+
+MODE="$1"
+shift
+
+# Initialize variables
+CLEAN_AFTER=false
+BUILD_ARGS=""
+
+# Parse mode-specific arguments
+case "$MODE" in
+    interactive|minicom)
+        # These modes don't accept additional parameters
+        if [[ $# -gt 0 ]]; then
+            echo "Error: Mode '$MODE' does not accept additional parameters"
+            echo "Usage: $0 $MODE"
+            exit 1
+        fi
+        ;;
+    build)
+        # Parse build-specific arguments
+        while [[ $# -gt 0 ]]; do
+            case $1 in
+                --flash)
+                    if [[ $# -gt 1 && ! "$2" =~ ^-- ]]; then
+                        # Flash device specified
+                        BUILD_ARGS="$BUILD_ARGS --flash $2"
+                        shift 2
+                    else
+                        echo "Error: --flash requires a device parameter (e.g. /dev/ttyUSB0)"
+                        exit 1
+                    fi
+                    ;;
+                --no-flash)
+                    BUILD_ARGS="$BUILD_ARGS --no-flash"
+                    shift
+                    ;;
+                --clean)
+                    CLEAN_AFTER=true
+                    shift
+                    ;;
+                *)
+                    echo "Error: Unknown build option '$1'"
+                    echo "Valid build options: --flash [device], --no-flash, --clean"
+                    exit 1
+                    ;;
+            esac
+        done
+        ;;
+    -h|--help)
+        echo "Usage:"
+        echo "  $0 interactive"
+        echo "  $0 minicom"
+        echo "  $0 build [--flash [device]] [--no-flash] [--clean]"
+        echo ""
+        echo "Modes:"
+        echo "  interactive  Start interactive bash session"
+        echo "  build        Run the build script with optional parameters"
+        echo "  minicom      Run minicom script for serial communication"
+        echo ""
+        echo "Build mode options:"
+        echo "  --flash [device]  Flash to specified device (e.g. /dev/ttyUSB0)"
+        echo "  --no-flash       Build only, skip flashing"
+        echo "  --clean          Clean build artifacts after container exits"
+        echo ""
+        echo "Examples:"
+        echo "  $0 interactive"
+        echo "  $0 build"
+        echo "  $0 build --no-flash --clean"
+        echo "  $0 build --flash /dev/ttyUSB0"
+        echo "  $0 minicom"
+        exit 0
+        ;;
+    *)
+        echo "Error: Invalid mode '$MODE'"
+        echo ""
+        echo "Valid modes: interactive, build, minicom"
+        echo "Run '$0 --help' for more information"
+        exit 1
+        ;;
+esac
 
 # Function to clean build artifacts safely using selective git clean
 cleanup_build_artifacts() {
@@ -19,31 +127,6 @@ cleanup_build_artifacts() {
     echo "Build artifacts cleaned safely (source code preserved)"
 }
 
-# Show help message
-if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-    echo "Usage: $0 [OPTIONS]"
-    echo ""
-    echo "Run GW018-DM firmware development container with auto-detected serial devices"
-    echo ""
-    echo "Options:"
-    echo "  -h, --help    Show this help message"
-    echo "  --clean       Clean build artifacts (run separately to clean up)"
-    echo ""
-    echo "This script will:"
-    echo "  - Build Docker image if it doesn't exist"
-    echo "  - Auto-detect serial devices (/dev/ttyUSB*, /dev/ttyACM*)"
-    echo "  - Mount project directory and pass devices to container"
-    echo "  - Optionally clean build artifacts (preserves source code)"
-    exit 0
-fi
-
-# Handle cleanup option - immediate cleanup if requested
-if [[ "$1" == "--clean" ]]; then
-    echo "Cleaning build artifacts..."
-    cleanup_build_artifacts
-    echo "Cleanup complete."
-    exit 0
-fi
 
 # Validate we're in the tools directory
 if [[ ! -f "Dockerfile" ]]; then
@@ -97,25 +180,66 @@ else
     echo "Total serial devices found: $DEVICE_COUNT"
 fi
 
-echo "Starting container..."
-docker run --rm --name "$CONTAINER_NAME" \
-  --volume "$PWD/../project:/workspace/project" \
-  --volume "$PWD/../component:/workspace/component" \
-  --volume "$PWD/../tools/build.sh:/workspace/build.sh" \
-  $DEVICE_OPTS \
-  -ti --entrypoint /bin/bash \
-  "$IMAGE_NAME"
+# Determine container command based on mode
+case "$MODE" in
+    interactive)
+        echo "Starting container in interactive mode..."
+        CONTAINER_CMD="/bin/bash"
+        INTERACTIVE_FLAG="-ti"
+        ;;
+    build)
+        echo "Starting container and running build script with args: $BUILD_ARGS"
+        CONTAINER_CMD="/bin/bash"
+        INTERACTIVE_FLAG="-ti"
+        ;;
+    minicom)
+        echo "Starting container and running minicom script..."
+        CONTAINER_CMD="/workspace/minicom.sh"
+        INTERACTIVE_FLAG="-ti"
+        ;;
+esac
 
-# After container exits, offer to clean build artifacts
+if [[ "$MODE" == "build" ]]; then
+    # For build mode, run the build script with arguments
+    docker run --rm --name "$CONTAINER_NAME" \
+      --volume "$PWD/../project:/workspace/project" \
+      --volume "$PWD/../component:/workspace/component" \
+      --volume "$PWD/../tools/build.sh:/workspace/build.sh" \
+      --volume "$PWD/../tools/minicom.sh:/workspace/minicom.sh" \
+      $DEVICE_OPTS \
+      $INTERACTIVE_FLAG --entrypoint "/bin/bash" \
+      "$IMAGE_NAME" -c "/workspace/build.sh $BUILD_ARGS"
+else
+    # For interactive and minicom modes
+    docker run --rm --name "$CONTAINER_NAME" \
+      --volume "$PWD/../project:/workspace/project" \
+      --volume "$PWD/../component:/workspace/component" \
+      --volume "$PWD/../tools/build.sh:/workspace/build.sh" \
+      --volume "$PWD/../tools/minicom.sh:/workspace/minicom.sh" \
+      $DEVICE_OPTS \
+      $INTERACTIVE_FLAG --entrypoint "$CONTAINER_CMD" \
+      "$IMAGE_NAME"
+fi
+
+# After container exits, handle cleanup based on --clean flag (only for build mode)
 echo ""
 echo "Container session ended."
-echo "Would you like to clean build artifacts? (y/n)"
-read -r response
-if [[ "$response" == "y" || "$response" == "Y" ]]; then
-    echo "Cleaning build artifacts..."
-    cleanup_build_artifacts
-    echo "Cleanup complete."
-else
-    echo "Skipping cleanup. Run '$0 --clean' later to clean build artifacts."
+
+if [[ "$MODE" == "build" ]]; then
+    if [[ "$CLEAN_AFTER" == true ]]; then
+        echo "Cleaning build artifacts..."
+        cleanup_build_artifacts
+        echo "Cleanup complete."
+    else
+        echo "Would you like to clean build artifacts? (y/n)"
+        read -r response
+        if [[ "$response" == "y" || "$response" == "Y" ]]; then
+            echo "Cleaning build artifacts..."
+            cleanup_build_artifacts
+            echo "Cleanup complete."
+        else
+            echo "Skipping cleanup. Run with '--clean' flag to clean build artifacts automatically."
+        fi
+    fi
 fi
   
