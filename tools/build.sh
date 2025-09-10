@@ -173,6 +173,14 @@ if [[ -n "$FLASH_DEVICE" ]]; then
     # Use pre-selected device from --flash flag
     SELECTED_DEVICE="$FLASH_DEVICE"
 else
+    # Ask for confirmation first
+    echo -e "${BLUE}${ICON_FLASH} Do you want to flash the firmware to GW018-DM now? (y/n)${NC}"
+    read -r response
+    if [[ "$response" != "y" ]]; then
+        echo -e "${YELLOW}${ICON_INFO} Exiting without flashing.${NC}"
+        exit 0
+    fi
+
     # Detect available serial devices
     echo -e "${CYAN}${ICON_INFO} Detecting serial devices...${NC}"
     SERIAL_DEVICES=()
@@ -224,14 +232,6 @@ else
                 echo -e "${RED}${ICON_ERROR} Invalid selection. Please enter a number between 1 and $DEVICE_COUNT.${NC}"
             fi
         done
-    fi
-
-    # Ask for confirmation unless --flash flag is used
-    echo -e "${BLUE}${ICON_FLASH} Do you want to flash the firmware to GW018-DM now? (y/n)${NC}"
-    read -r response
-    if [[ "$response" != "y" ]]; then
-        echo -e "${YELLOW}${ICON_INFO} Exiting without flashing.${NC}"
-        exit 0
     fi
 fi
 
