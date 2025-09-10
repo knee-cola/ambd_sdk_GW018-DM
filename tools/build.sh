@@ -45,8 +45,6 @@ ICON_FLASH="⚡"
 ICON_COPY="📁"
 ICON_MAC="🏷️"
 
-echo $PWD
-
 # Verify flash device if --flash flag is used
 if [[ -n "$FLASH_DEVICE" ]]; then
     if [[ ! -c "$FLASH_DEVICE" ]]; then
