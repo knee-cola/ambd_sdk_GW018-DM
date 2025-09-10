@@ -17,37 +17,48 @@ ICON_SERIAL="📡 "
 ICON_BUILD="🔨 "
 ICON_DOCKER="🐳 "
 ICON_CLEAN="🧹 "
+ICON_TOOLBOX="🧰 "
 
 set -e # Exit on error
 
 IMAGE_NAME="gw018-builder-flasher:latest"
 CONTAINER_NAME="gw018-builder-flasher"
 
+echo ""
+echo -e "${CYAN}${ICON_TOOLBOX}\e[4mGW018 Toolbox Runner\e[0m${NC}"
+echo ""
+
+# Function to print usage instructions
+print_usage() {
+    echo -e "${BLUE}${ICON_INFO}Usage:${NC}"
+    echo -e "  ${GREEN}$0 interactive${NC}"
+    echo -e "  ${GREEN}$0 minicom${NC}"
+    echo -e "  ${GREEN}$0 build${NC} ${YELLOW}[--flash [device]] [--no-flash] [--no-clean]${NC}"
+    echo ""
+    echo -e "${BLUE}${ICON_INFO}Modes:${NC}"
+    echo -e "  ${CYAN}interactive${NC}  ${ICON_DOCKER}Start interactive bash session"
+    echo -e "  ${CYAN}build${NC}        ${ICON_BUILD}Run the build script with optional parameters"
+    echo -e "  ${CYAN}minicom${NC}      ${ICON_SERIAL}Run minicom script for serial communication"
+    echo ""
+    echo -e "${BLUE}${ICON_INFO}Build mode options:${NC}"
+    echo -e "  ${YELLOW}--flash [device]${NC}  Flash to specified device (e.g. /dev/ttyUSB0)"
+    echo -e "  ${YELLOW}--no-flash${NC}        Build only, skip flashing"
+    echo -e "  ${YELLOW}--no-clean${NC}        Skip cleaning build artifacts after container exits"
+    echo ""
+    echo -e "${BLUE}${ICON_INFO}Examples:${NC}"
+    echo -e "  ${GREEN}$0 interactive${NC}"
+    echo -e "  ${GREEN}$0 build${NC}"
+    echo -e "  ${GREEN}$0 build${NC} ${YELLOW}--no-clean${NC}"
+    echo -e "  ${GREEN}$0 build${NC} ${YELLOW}--flash /dev/ttyUSB0${NC}"
+    echo -e "  ${GREEN}$0 minicom${NC}"
+    echo ""
+}
+
 # Parse and validate command line arguments
 if [[ $# -lt 1 ]]; then
-    echo "Error: At least one parameter required"
+    echo -e "${RED}${ICON_ERROR}Error: At least one parameter required${NC}"
     echo ""
-    echo "Usage:"
-    echo "  $0 interactive"
-    echo "  $0 minicom"
-    echo "  $0 build [--flash [device]] [--no-flash] [--no-clean]"
-    echo ""
-    echo "Modes:"
-    echo "  interactive  Start interactive bash session"
-    echo "  build        Run the build script with optional parameters"
-    echo "  minicom      Run minicom script for serial communication"
-    echo ""
-    echo "Build mode options:"
-    echo "  --flash [device]  Flash to specified device (e.g. /dev/ttyUSB0)"
-    echo "  --no-flash       Build only, skip flashing"
-    echo "  --no-clean       Skip cleaning build artifacts after container exits"
-    echo ""
-    echo "Examples:"
-    echo "  $0 interactive"
-    echo "  $0 build"
-    echo "  $0 build --no-flash --no-clean"
-    echo "  $0 build --flash /dev/ttyUSB0"
-    echo "  $0 minicom"
+    print_usage
     exit 1
 fi
 
@@ -63,8 +74,8 @@ case "$MODE" in
     interactive|minicom)
         # These modes don't accept additional parameters
         if [[ $# -gt 0 ]]; then
-            echo "Error: Mode '$MODE' does not accept additional parameters"
-            echo "Usage: $0 $MODE"
+            echo -e "${RED}${ICON_ERROR}Error: Mode '$MODE' does not accept additional parameters${NC}"
+            echo -e "${BLUE}Usage: $0 $MODE${NC}"
             exit 1
         fi
         ;;
@@ -78,7 +89,7 @@ case "$MODE" in
                         BUILD_ARGS="$BUILD_ARGS --flash $2"
                         shift 2
                     else
-                        echo "Error: --flash requires a device parameter (e.g. /dev/ttyUSB0)"
+                        echo -e "${RED}${ICON_ERROR}Error: --flash requires a device parameter (e.g. /dev/ttyUSB0)${NC}"
                         exit 1
                     fi
                     ;;
@@ -91,42 +102,23 @@ case "$MODE" in
                     shift
                     ;;
                 *)
-                    echo "Error: Unknown build option '$1'"
-                    echo "Valid build options: --flash [device], --no-flash, --no-clean"
+                    echo -e "${RED}${ICON_ERROR}Error: Unknown build option '$1'${NC}"
+                    echo -e "${BLUE}Valid build options: --flash [device], --no-flash, --no-clean${NC}"
                     exit 1
                     ;;
             esac
         done
         ;;
     -h|--help)
-        echo "Usage:"
-        echo "  $0 interactive"
-        echo "  $0 minicom"
-        echo "  $0 build [--flash [device]] [--no-flash] [--no-clean]"
-        echo ""
-        echo "Modes:"
-        echo "  interactive  Start interactive bash session"
-        echo "  build        Run the build script with optional parameters"
-        echo "  minicom      Run minicom script for serial communication"
-        echo ""
-        echo "Build mode options:"
-        echo "  --flash [device]  Flash to specified device (e.g. /dev/ttyUSB0)"
-        echo "  --no-flash       Build only, skip flashing"
-        echo "  --no-clean       Skip cleaning build artifacts after container exits"
-        echo ""
-        echo "Examples:"
-        echo "  $0 interactive"
-        echo "  $0 build"
-        echo "  $0 build --no-clean"
-        echo "  $0 build --flash /dev/ttyUSB0"
-        echo "  $0 minicom"
+        print_usage
         exit 0
         ;;
     *)
-        echo "Error: Invalid mode '$MODE'"
+        echo -e "${RED}${ICON_ERROR}Error: Invalid mode '$MODE'${NC}"
         echo ""
-        echo "Valid modes: interactive, build, minicom"
-        echo "Run '$0 --help' for more information"
+        echo -e "${BLUE}Valid modes: ${GREEN}interactive, build, minicom${NC}"
+        echo -e "${BLUE}Run ${GREEN}$0 ${YELLOW}--help${BLUE} for more information${NC}"
+        echo ""
         exit 1
         ;;
 esac

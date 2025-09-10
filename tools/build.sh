@@ -42,7 +42,7 @@ ICON_SUCCESS="✅ "
 ICON_ERROR="❌ "
 ICON_WARNING="⚠️  "
 ICON_INFO="ℹ️  "
-ICON_FLASH="⚡ "
+ICON_FLASH="🌩️ "
 ICON_COPY="📁 "
 
 echo ""
