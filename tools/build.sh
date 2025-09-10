@@ -43,7 +43,6 @@ ICON_WARNING="⚠️ "
 ICON_INFO="ℹ️ "
 ICON_FLASH="⚡"
 ICON_COPY="📁"
-ICON_MAC="🏷️ "
 
 # Verify flash device if --flash flag is used
 if [[ -n "$FLASH_DEVICE" ]]; then
@@ -97,15 +96,6 @@ validate_build() {
     return 0
 }
 
-echo -e "${BLUE}${ICON_MAC} Please enter the MAC address of the device (format: AA:BB:CC:DD:EE:FF):${NC}"
-read -r device_mac
-
-if [[ ! "$device_mac" =~ ^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$ ]]; then
-    echo -e "${RED}${ICON_ERROR} Error: Invalid MAC address format. Please use AA:BB:CC:DD:EE:FF format.${NC}"
-    exit 1
-fi
-
-echo -e "${GREEN}${ICON_MAC} Using device MAC address: $device_mac${NC}"
 
 echo -e "${YELLOW}${ICON_INFO} Setting permissions for Docker build environment...${NC}"
 chmod -R 777 "$PROJECT_LP_DIR"
@@ -116,9 +106,9 @@ cd "$PROJECT_LP_DIR"
 make clean
 
 # Capture build output and check for success
-echo -e "${CYAN}${ICON_BUILD} Starting LP build with MAC: $device_mac${NC}"
+echo -e "${CYAN}${ICON_BUILD} Starting LP build...${NC}"
 build_output_lp=$(mktemp)
-if ! DEVICE_MAC="$device_mac" make all 2>&1 | tee "$build_output_lp"; then
+if ! make all 2>&1 | tee "$build_output_lp"; then
     echo -e "${RED}${ICON_ERROR} ERROR: LP build failed with non-zero exit code${NC}"
     echo -e "${YELLOW}${ICON_INFO} Build output saved to: $build_output_lp${NC}"
     exit 1
@@ -138,9 +128,9 @@ cd "$PROJECT_HP_DIR"
 make clean
 
 # Capture build output and check for success
-echo -e "${CYAN}${ICON_BUILD} Starting HP build with MAC: $device_mac${NC}"
+echo -e "${CYAN}${ICON_BUILD} Starting HP build...${NC}"
 build_output_hp=$(mktemp)
-if ! DEVICE_MAC="$device_mac" make all 2>&1 | tee "$build_output_hp"; then
+if ! make all 2>&1 | tee "$build_output_hp"; then
     echo -e "${RED}${ICON_ERROR} ERROR: HP build failed with non-zero exit code${NC}"
     echo -e "${YELLOW}${ICON_INFO} Build output saved to: $build_output_hp${NC}"
     exit 1
