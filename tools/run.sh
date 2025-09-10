@@ -192,27 +192,20 @@ for device in /dev/ttyACM*; do
     fi
 done
 
-if [ $DEVICE_COUNT -eq 0 ]; then
-    echo -e "${YELLOW}${ICON_WARNING}No serial devices found (/dev/ttyUSB*, /dev/ttyACM*)${NC}"
-    echo -e "${YELLOW}${ICON_INFO}Device may not be connected or accessible${NC}"
-else
-    echo -e "${GREEN}${ICON_SUCCESS}Total serial devices found: $DEVICE_COUNT${NC}"
-fi
-
 # Determine container command based on mode
 case "$MODE" in
     interactive)
-        echo -e "${CYAN}${ICON_INFO}Starting container in interactive mode...${NC}"
+        echo -e "${CYAN}${ICON_DOCKER}Starting container in interactive mode...${NC}"
         CONTAINER_CMD="/bin/bash"
         INTERACTIVE_FLAG="-ti"
         ;;
     build)
-        echo -e "${CYAN}${ICON_BUILD}Starting container and running build script with args: $BUILD_ARGS${NC}"
+        echo -e "${CYAN}${ICON_DOCKER}Starting container and running build script with args: $BUILD_ARGS${NC}"
         CONTAINER_CMD="/bin/bash"
         INTERACTIVE_FLAG="-ti"
         ;;
     minicom)
-        echo -e "${CYAN}${ICON_SERIAL}Starting container and running minicom script...${NC}"
+        echo -e "${CYAN}${ICON_DOCKER}Starting container and running minicom script...${NC}"
         CONTAINER_CMD="/workspace/minicom.sh"
         INTERACTIVE_FLAG="-ti"
         ;;
